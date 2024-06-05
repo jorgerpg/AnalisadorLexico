@@ -1,4 +1,5 @@
 import sys
+import re
 
 class AnalisadorLexico:
     ATOMOS = {
@@ -14,7 +15,6 @@ class AnalisadorLexico:
         "<": "B19", "<=": "B20", "==": "B21", ">": "B22", ">=":"B23",
         "consCadeia": "C01", "consCaracter": "C02", "consInteiro": "C03", "consReal": "C04",
         "nomFuncao": "C05", "nomPrograma": "C06", "variavel": "C07",
-        #"subMáquina1": "D01", "subMáquina2": "D02", "subMáquina3": "D03" ????
     }
 
     RESERVADAS = {k.upper(): v for k, v in ATOMOS.items()}
@@ -28,17 +28,19 @@ class AnalisadorLexico:
         self.carregar_arquivo()
         self.linha = 1
         self.coluna = 0
+        self.linhas_originais = self.buffer.splitlines()
 
     def carregar_arquivo(self):
         try:
             with open(self.nome_arquivo, 'r') as arquivo:
-                self.buffer = arquivo.read().upper()  # Converte todo o conteúdo para maiúsculas
+                self.buffer = self.filtrar_comentarios(arquivo.read().upper())  # Converte todo o conteúdo para maiúsculas e filtra comentários
         except FileNotFoundError:
             print(f"Erro: O arquivo '{self.nome_arquivo}' não foi encontrado.")
             sys.exit(1)
         except Exception as e:
             print(f"Ocorreu um erro: {e}")
             sys.exit(1)
+
     def gerar_relatorios(self):
         self.gerar_relatorio_lexico()
         self.gerar_relatorio_tabela_simbolos()
@@ -55,7 +57,7 @@ class AnalisadorLexico:
 
             for simbolo in self.simbolos:
                 lex_file.write("-------------------------------------------------------------------------------------------------------------------------------------------------\n")
-                lex_file.write(f'Lexeme: {simbolo["token"]}, Codigo: {simbolo["codigo"]}, IndiceTabSimb: 1, Linha: {simbolo["linha"]}.\n')
+                lex_file.write(f'Lexeme: {simbolo["token"]}, Codigo: {simbolo["codigo"]}, IndiceTabSimb: {simbolo["indice"]}, Linha: {simbolo["linha"]}.\n')
 
     def gerar_relatorio_tabela_simbolos(self):
         with open(self.nome_arquivo + '.TAB', 'w') as tab_file:
@@ -67,18 +69,23 @@ class AnalisadorLexico:
             tab_file.write("    Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915\n\n")
             tab_file.write(f"RELATORIO DA TABELA DE SIMBOLOS. Texto fonte analisado: {self.nome_arquivo}.\n\n")
 
-            entrada = 1
-            for lexeme, info in self.tabela_simbolos.items():
-                linhas = ', '.join(map(str, sorted(info['linhas'])))
+            for indice, (lexeme, info) in enumerate(self.tabela_simbolos.items(), start=1):
+                linhas = ', '.join(map(str, sorted(info['linhas'])[:5]))  # Limitar a 5 primeiras linhas
                 tab_file.write("-------------------------------------------------------------------------------------------------------------------------------------------------\n")
-                tab_file.write(f"Entrada: {entrada}, Codigo: {info['codigo']}, Lexeme: {lexeme},\n")
+                tab_file.write(f"Entrada: {indice}, Codigo: {info['codigo']}, Lexeme: {lexeme},\n")
                 tab_file.write(f"QtdCharAntesTrunc: {info['qtd_char_antes']}, QtdCharDepoisTrunc: {info['qtd_char_depois']},\n")
                 tab_file.write(f"TipoSimb: {info['tipo_simb']}, Linhas: {{{linhas}}}.\n\n")
-                entrada += 1
+
+    def filtrar_comentarios(self, texto):
+        # Substitui comentários de bloco por espaços em branco, preservando quebras de linha
+        texto_sem_comentarios = re.sub(r'/\*.*?\*/', lambda m: ' ' * (len(m.group(0))), texto, flags=re.DOTALL)
+        # Substitui comentários de linha por espaços em branco, preservando quebras de linha
+        texto_sem_comentarios = re.sub(r'//.*', lambda m: ' ' * (len(m.group(0))), texto_sem_comentarios)
+        return texto_sem_comentarios
 
     def verificar_reservada(self, token):
         return self.RESERVADAS.get(token, None)
-    
+
     def reconhecerTokens(self):
         while self.posicao < len(self.buffer):
             char = self.buffer[self.posicao]
@@ -102,8 +109,9 @@ class AnalisadorLexico:
                 reservada = self.verificar_reservada(token['token'])
                 if reservada:
                     token['codigo'] = reservada
-                self.simbolos.append(token)
                 self.adicionar_tabela_simbolos(token)
+                token['indice'] = self.obter_indice_simbolo(token['token'])
+                self.simbolos.append(token)
             else:
                 self.avancar_posicao()
 
@@ -113,11 +121,18 @@ class AnalisadorLexico:
             self.tabela_simbolos[lexeme] = {
                 'codigo': token['codigo'],
                 'qtd_char_antes': len(lexeme),
-                'qtd_char_depois': len(lexeme),
+                'qtd_char_depois': len(lexeme[:30]),  # Limita a 30 caracteres
                 'tipo_simb': '-',
-                'linhas': set()
+                'linhas': []
             }
-        self.tabela_simbolos[lexeme]['linhas'].add(token['linha'])
+        if len(self.tabela_simbolos[lexeme]['linhas']) < 5:
+            self.tabela_simbolos[lexeme]['linhas'].append(token['linha'])
+
+    def obter_indice_simbolo(self, lexeme):
+        for indice, (simbolo, _) in enumerate(self.tabela_simbolos.items(), start=1):
+            if simbolo == lexeme:
+                return indice
+        return -1
 
     def is_whitespace(self, char):
         return char in ' \t\n\r'
@@ -126,22 +141,23 @@ class AnalisadorLexico:
         return 'A' <= char <= 'Z'
 
     def is_digit(self, char):
-        return char.isdigit()
+        return '0' <= char <= '9'
 
     def avancar_posicao(self):
-        if self.buffer[self.posicao] == '\n':
-            self.linha += 1
-            self.coluna = 0
-        else:
-            self.coluna += 1
-        self.posicao += 1
+        if self.posicao < len(self.buffer):
+            if self.buffer[self.posicao] == '\n':
+                self.linha += 1
+                self.coluna = 0
+            else:
+                self.coluna += 1
+            self.posicao += 1
 
     def reconhecer_nome(self):
         inicio = self.posicao
         coluna_inicio = self.coluna
         while self.posicao < len(self.buffer) and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao])):
             self.avancar_posicao()
-        nome = self.buffer[inicio:self.posicao]
+        nome = self.buffer[inicio:self.posicao][:30]  # Limita a 30 caracteres
         return {"token": nome, "linha": self.linha, "coluna": coluna_inicio, "codigo": "C07"}
 
     def reconhecer_numero(self):
@@ -150,7 +166,7 @@ class AnalisadorLexico:
         while self.posicao < len(self.buffer) and self.is_digit(self.buffer[self.posicao]):
             self.avancar_posicao()
         numero = self.buffer[inicio:self.posicao]
-        return {"token": numero, "linha": self.linha, "coluna": coluna_inicio, "codigo":  "C03"}
+        return {"token": numero, "linha": self.linha, "coluna": coluna_inicio, "codigo": "C03"}
 
     def reconhecer_cadeia(self):
         self.avancar_posicao()  # Pular o primeiro "
@@ -158,7 +174,7 @@ class AnalisadorLexico:
         coluna_inicio = self.coluna
         while self.posicao < len(self.buffer) and self.buffer[self.posicao] != '"':
             self.avancar_posicao()
-        cadeia = self.buffer[inicio:self.posicao]
+        cadeia = self.buffer[inicio:self.posicao][:30]  # Limita a 30 caracteres
         self.avancar_posicao()  # Pular o último "
         return {"token": cadeia, "linha": self.linha, "coluna": coluna_inicio, "codigo": "C01"}
 
@@ -170,4 +186,4 @@ class AnalisadorLexico:
             if self.posicao < len(self.buffer) and self.buffer[self.posicao] == "'":
                 self.avancar_posicao()  # Pular o último '
                 return {"token": caracter, "linha": self.linha, "coluna": self.coluna - 1, "codigo": "C02"}
-        return None  # Caso o formato seja inválido
+        return None

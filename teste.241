@@ -1,5 +1,8 @@
-teste := b+5*3
+/*teste := b+5*3
 Se teste == 0.0332
     imprime "O teste eh"
     imprime 'x'
-fimse
+    teste
+//fimse
+teste
+teste

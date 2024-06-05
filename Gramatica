@@ -11,3 +11,37 @@
 <letra> ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z
 <digito> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
 <branco> ::= “caracter de espaço em branco”.
+
+
+  
+
+  def gerar_relatorio_lexico(self):
+  with open(self.nome_arquivo + '.LEX', 'w') as lex_file:
+      lex_file.write("Codigo da Equipe: 04\n")
+      lex_file.write("Componentes:\n")
+      lex_file.write("    Amanda Bandeira Aragao Rigaud Lima; amanda.lima@aln.senaicimatec.edu.br; (71)99142-8451\n")
+      lex_file.write("    Jorge Ricarte Passos Goncalves; jorge.goncalves@aln.senaicimatec.edu.br; (71)99966-5608\n")
+      lex_file.write("    Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99267-9326\n")
+      lex_file.write("    Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915\n\n")
+      lex_file.write(f"RELATORIO DA ANALISE LEXICA. Texto fonte analisado: {self.nome_arquivo}.\n\n")
+
+      for simbolo in self.simbolos:
+          lex_file.write("-------------------------------------------------------------------------------------------------------------------------------------------------\n")
+          lex_file.write(f'Lexeme: {simbolo["token"]}, Codigo: {simbolo["codigo"]}, IndiceTabSimb: {simbolo["indice"]}, Linha: {simbolo["linha"]}.\n')
+
+def gerar_relatorio_tabela_simbolos(self):
+  with open(self.nome_arquivo + '.TAB', 'w') as tab_file:
+      tab_file.write("Codigo da Equipe: 04\n")
+      tab_file.write("Componentes:\n")
+      tab_file.write("    Amanda Bandeira Aragao Rigaud Lima; amanda.lima@aln.senaicimatec.edu.br; (71)99142-8451\n")
+      tab_file.write("    Jorge Ricarte Passos Goncalves; jorge.goncalves@aln.senaicimatec.edu.br; (71)99966-5608\n")
+      tab_file.write("    Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99267-9326\n")
+      tab_file.write("    Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915\n\n")
+      tab_file.write(f"RELATORIO DA TABELA DE SIMBOLOS. Texto fonte analisado: {self.nome_arquivo}.\n\n")
+
+      for indice, (lexeme, info) in enumerate(self.tabela_simbolos.items(), start=1):
+          linhas = ', '.join(map(str, sorted(info['linhas'])))
+          tab_file.write("-------------------------------------------------------------------------------------------------------------------------------------------------\n")
+          tab_file.write(f"Entrada: {indice}, Codigo: {info['codigo']}, Lexeme: {lexeme},\n")
+          tab_file.write(f"QtdCharAntesTrunc: {info['qtd_char_antes']}, QtdCharDepoisTrunc: {info['qtd_char_depois']},\n")
+          tab_file.write(f"TipoSimb: {info['tipo_simb']}, Linhas: {{{linhas}}}.\n\n")

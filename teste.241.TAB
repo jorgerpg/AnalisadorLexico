@@ -5,12 +5,12 @@ Componentes:
     Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99267-9326
     Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915
 
-RELATORIO DA TABELA DE SIMBOLOS. Texto fonte analisado: teste.241.
+RELATORIO DA TABELA DE SIMBOLOS. Texto fonte analisado: .\teste.241.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 1, Codigo: C07, Lexeme: TESTE,
 QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
-TipoSimb: -, Linhas: {1, 2}.
+TipoSimb: -, Linhas: {1, 2, 5, 7, 8}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 2, Codigo: C07, Lexeme: B,
@@ -56,9 +56,4 @@ TipoSimb: -, Linhas: {3}.
 Entrada: 10, Codigo: C02, Lexeme: X,
 QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
 TipoSimb: -, Linhas: {4}.
-
--------------------------------------------------------------------------------------------------------------------------------------------------
-Entrada: 11, Codigo: A11, Lexeme: FIMSE,
-QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
-TipoSimb: -, Linhas: {5}.
 

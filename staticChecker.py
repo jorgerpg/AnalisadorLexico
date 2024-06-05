@@ -9,12 +9,13 @@ class AnalisadorSintatico:
     def analisar(self):
         self.analisador_lexico.reconhecerTokens()
         self.atomos = self.analisador_lexico.simbolos
+        self.analisador_lexico.gerar_relatorios()
 
     def get_atomos(self):
         return self.atomos
 
     def get_simbolos(self):
-        return self.analisador_lexico.simbolos
+        return self.analisador_lexico.get_simbolos()
 
 def main():
     if len(sys.argv) != 2:
@@ -28,9 +29,6 @@ def main():
 
     analisador_sintatico = AnalisadorSintatico(nome_arquivo)
     analisador_sintatico.analisar()
-
-    # Salvar os relatórios
-    analisador_sintatico.analisador_lexico.gerar_relatorios()
 
 if __name__ == "__main__":
     main()
