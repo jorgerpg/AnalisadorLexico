@@ -1,0 +1,64 @@
+Codigo da Equipe: 04
+Componentes:
+    Amanda Bandeira Aragao Rigaud Lima; amanda.lima@aln.senaicimatec.edu.br; (71)99142-8451
+    Jorge Ricarte Passos Goncalves; jorge.goncalves@aln.senaicimatec.edu.br; (71)99966-5608
+    Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99267-9326
+    Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915
+
+RELATORIO DA TABELA DE SIMBOLOS. Texto fonte analisado: teste.241.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 1, Codigo: C07, Lexeme: TESTE,
+QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
+TipoSimb: -, Linhas: {1, 2}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 2, Codigo: C07, Lexeme: B,
+QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
+TipoSimb: -, Linhas: {1}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 3, Codigo: C03, Lexeme: 5,
+QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
+TipoSimb: -, Linhas: {1}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 4, Codigo: C03, Lexeme: 3,
+QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
+TipoSimb: -, Linhas: {1}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 5, Codigo: A20, Lexeme: SE,
+QtdCharAntesTrunc: 2, QtdCharDepoisTrunc: 2,
+TipoSimb: -, Linhas: {2}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 6, Codigo: C03, Lexeme: 0,
+QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
+TipoSimb: -, Linhas: {2}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 7, Codigo: C03, Lexeme: 0332,
+QtdCharAntesTrunc: 4, QtdCharDepoisTrunc: 4,
+TipoSimb: -, Linhas: {2}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 8, Codigo: A13, Lexeme: IMPRIME,
+QtdCharAntesTrunc: 7, QtdCharDepoisTrunc: 7,
+TipoSimb: -, Linhas: {3, 4}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 9, Codigo: C01, Lexeme: O TESTE EH,
+QtdCharAntesTrunc: 10, QtdCharDepoisTrunc: 10,
+TipoSimb: -, Linhas: {3}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 10, Codigo: C02, Lexeme: X,
+QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
+TipoSimb: -, Linhas: {4}.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+Entrada: 11, Codigo: A11, Lexeme: FIMSE,
+QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
+TipoSimb: -, Linhas: {5}.
+

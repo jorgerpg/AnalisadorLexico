@@ -1,0 +1,13 @@
+<nomPrograma> ::= <letra> | <nomPrograma> <letra> | <nomPrograma> <digito>
+<variavel> ::= <letra> | _ | <variavel> <letra> | <variavel> <digito> | <variavel> _
+<nomFuncao>::= <letra> | <nomFuncao> <letra> | <nomFuncao> <digito>
+<consInteiro> ::= <digitos-decimal>
+<digitos-decimal> ::= <digito> | <digitos-decimal><digito>
+<consReal> ::= <digitos-decimal> . <digitos-decimal> | <digitos-decimal> . <digitos-decimal> <parte-exponencial>
+<parte-exponencial> ::= e <digitos-decimal> | e - <digitos-decimal> | e + <digitos-decimal>
+<consCadeia> ::= "''" <miolo-cadeia> "''" //inicia e termina com aspas duplas
+<miolo-cadeia> ::= ( <letra> | <branco> | <digito> | $ | _ | . ) <miolo-cadeia> | <letra> | <branco> | <digito> | $ | _ | .
+<consCaracter> ::= "'" <letra> "'" //inicia e termina com aspas simples
+<letra> ::= a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z
+<digito> ::= 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+<branco> ::= “caracter de espaço em branco”.
