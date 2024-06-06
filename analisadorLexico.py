@@ -120,9 +120,14 @@ class AnalisadorLexico:
                 token_info["codigo"] = codigo
                 tipo_simb = self.determinar_tipo(codigo)
             elif self.is_digit(self.buffer[self.posicao]):
-                token_info = self.reconhecer_numero()
-                token_info["codigo"] = "C03"
-                tipo_simb = "INT"
+                token_info = self.reconhecer_real()  # Chama a nova função para reconhecer números reais
+                if token_info is None:
+                    token_info = self.reconhecer_numero()
+                    token_info["codigo"] = "C03"
+                    tipo_simb = "INT"
+                else:
+                    token_info["codigo"] = "C04"
+                    tipo_simb = "PFO"
             else:
                 self.avancar_posicao()
                 continue
@@ -178,7 +183,10 @@ class AnalisadorLexico:
         while self.posicao < len(self.buffer) and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao])):
             self.avancar_posicao()
         nome = self.buffer[inicio:self.posicao][:30]  # Limita a 30 caracteres
-        return {"token": nome, "linha": self.linha, "coluna": coluna_inicio, "codigo": "C07"}
+        return {"token": nome, 
+                "linha": self.linha, 
+                "coluna": coluna_inicio, 
+                "codigo": "C07"}
 
     def reconhecer_numero(self):
         inicio = self.posicao
@@ -186,7 +194,10 @@ class AnalisadorLexico:
         while self.posicao < len(self.buffer) and self.is_digit(self.buffer[self.posicao]):
             self.avancar_posicao()
         numero = self.buffer[inicio:self.posicao]
-        return {"token": numero, "linha": self.linha, "coluna": coluna_inicio, "codigo": "C03"}
+        return {"token": numero, 
+                "linha": self.linha, 
+                "coluna": coluna_inicio, 
+                "codigo": "C03"}
 
     def reconhecer_cadeia(self):
         self.avancar_posicao()  # Pular o primeiro "
@@ -196,7 +207,10 @@ class AnalisadorLexico:
             self.avancar_posicao()
         cadeia = self.buffer[inicio:self.posicao][:30]  # Limita a 30 caracteres
         self.avancar_posicao()  # Pular o último "
-        return {"token": cadeia, "linha": self.linha, "coluna": coluna_inicio, "codigo": "C01"}
+        return {"token": cadeia, 
+                "linha": self.linha, 
+                "coluna": coluna_inicio, 
+                "codigo": "C01"}
 
     def reconhecer_caracter(self):
         self.avancar_posicao()  # Pular o primeiro '
@@ -205,5 +219,49 @@ class AnalisadorLexico:
             self.avancar_posicao()  # Pular o caracter
             if self.posicao < len(self.buffer) and self.buffer[self.posicao] == "'":
                 self.avancar_posicao()  # Pular o último '
-                return {"token": caracter, "linha": self.linha, "coluna": self.coluna - 1, "codigo": "C02"}
+                return {"token": caracter, 
+                        "linha": self.linha, 
+                        "coluna": self.coluna - 1, 
+                        "codigo": "C02"}
+        return None
+    
+
+    def reconhecer_real(self):
+        inicio = self.posicao
+        ponto_encontrado = False
+        expoente_encontrado = False
+        pos_expoente = -1
+
+        while self.posicao < len(self.buffer):
+            char = self.buffer[self.posicao]
+            if self.is_digit(char):
+                self.avancar_posicao()
+            elif char == '.' and not ponto_encontrado:
+                ponto_encontrado = True
+                self.avancar_posicao()
+            elif char in ('e', 'E') and not expoente_encontrado:
+                expoente_encontrado = True
+                self.avancar_posicao()
+                if self.posicao < len(self.buffer) and self.buffer[self.posicao] in ('+', '-'):
+                    self.avancar_posicao()
+                pos_expoente = self.posicao
+            else:
+                break
+
+        if ponto_encontrado:
+            token = self.buffer[inicio:self.posicao]
+            if expoente_encontrado and pos_expoente < self.posicao:
+                return {
+                    "token": token,
+                    "linha": self.linha,
+                    "coluna": self.coluna - len(token)
+                }
+            elif not expoente_encontrado:
+                return {
+                    "token": token,
+                    "linha": self.linha,
+                    "coluna": self.coluna - len(token)
+                }
+
+        self.posicao = inicio
         return None
