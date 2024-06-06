@@ -19,6 +19,13 @@ class AnalisadorLexico:
 
     RESERVADAS = {k.upper(): v for k, v in ATOMOS.items()}
 
+    TIPOS = {
+        "A01": "STR", "A02": "CHC", "A03": "declaracoes", "A05": "BOO",
+        "A14": "INT", "A18": "PFO", "A25": "BOO", "A26": "VOI",
+        "C01": "STR", "C02": "CHC", "C03": "INT", "C04": "PFO", 
+        "C05": "STR", "C06": "STR", "C07": "STR",
+    }
+
     def __init__(self, nome_arquivo):
         self.nome_arquivo = nome_arquivo
         self.posicao = 0
@@ -78,64 +85,77 @@ class AnalisadorLexico:
 
     def filtrar_comentarios(self, texto):
         # Substitui comentários de bloco por espaços em branco, preservando quebras de linha
-        texto_sem_comentarios = re.sub(r'/\*.*?\*/', lambda m: ' ' * (len(m.group(0))), texto, flags=re.DOTALL)
-        # Substitui comentários de linha por espaços em branco, preservando quebras de linha
-        texto_sem_comentarios = re.sub(r'//.*', lambda m: ' ' * (len(m.group(0))), texto_sem_comentarios)
-        return texto_sem_comentarios
+        while True:
+            bloco_comentario_inicio = texto.find('/*')
+            bloco_comentario_fim = texto.find('*/', bloco_comentario_inicio + 2)
+            if bloco_comentario_inicio == -1:
+                break
+            if bloco_comentario_fim == -1:
+                # Se não houver fechamento do comentário de bloco, consideramos tudo até o fim do arquivo como comentário
+                bloco_comentario_fim = len(texto)
+            comentario_bloco = texto[bloco_comentario_inicio:bloco_comentario_fim + 2]
+            texto = texto.replace(comentario_bloco, ' ' * len(comentario_bloco), 1)
 
-    def verificar_reservada(self, token):
-        return self.RESERVADAS.get(token, None)
+        # Substitui comentários de linha por espaços em branco, preservando quebras de linha
+        texto = re.sub(r'//.*', lambda m: ' ' * (len(m.group(0))), texto)
+        return texto
 
     def reconhecerTokens(self):
         while self.posicao < len(self.buffer):
-            char = self.buffer[self.posicao]
-
-            if self.is_whitespace(char):
+            if self.is_whitespace(self.buffer[self.posicao]):
                 self.avancar_posicao()
                 continue
 
-            token = None
-            if self.is_letter(char):
-                token = self.reconhecer_nome()
-            elif self.is_digit(char):
-                token = self.reconhecer_numero()
-            elif char == '"':
-                token = self.reconhecer_cadeia()
-            elif char == "'":
-                token = self.reconhecer_caracter()
-            # Adicione outras regras conforme necessário
-
-            if token:
-                reservada = self.verificar_reservada(token['token'])
-                if reservada:
-                    token['codigo'] = reservada
-                self.adicionar_tabela_simbolos(token)
-                token['indice'] = self.obter_indice_simbolo(token['token'])
-                self.simbolos.append(token)
+            if self.buffer[self.posicao] == '"':
+                token_info = self.reconhecer_cadeia()
+                token_info["codigo"] = "C01"
+                tipo_simb = "STR"
+            elif self.buffer[self.posicao] == "'":
+                token_info = self.reconhecer_caracter()
+                token_info["codigo"] = "C02"
+                tipo_simb = "CHC"
+            elif self.is_letter(self.buffer[self.posicao]):
+                token_info = self.reconhecer_nome()
+                codigo = self.RESERVADAS.get(token_info["token"], "C07")
+                token_info["codigo"] = codigo
+                tipo_simb = self.determinar_tipo(codigo)
+            elif self.is_digit(self.buffer[self.posicao]):
+                token_info = self.reconhecer_numero()
+                token_info["codigo"] = "C03"
+                tipo_simb = "INT"
             else:
                 self.avancar_posicao()
+                continue
 
-    def adicionar_tabela_simbolos(self, token):
-        lexeme = token['token']
-        if lexeme not in self.tabela_simbolos:
-            self.tabela_simbolos[lexeme] = {
-                'codigo': token['codigo'],
-                'qtd_char_antes': len(lexeme),
-                'qtd_char_depois': len(lexeme[:30]),  # Limita a 30 caracteres
-                'tipo_simb': '-',
-                'linhas': []
-            }
-        if len(self.tabela_simbolos[lexeme]['linhas']) < 5:
-            self.tabela_simbolos[lexeme]['linhas'].append(token['linha'])
+            lexeme = token_info["token"]
+            qtd_char_antes = len(lexeme)
+            qtd_char_depois = min(qtd_char_antes, 30)
+
+            token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
+            self.simbolos.append(token_info)
+
+            if lexeme not in self.tabela_simbolos:
+                self.tabela_simbolos[lexeme] = {
+                    "codigo": token_info["codigo"],
+                    "qtd_char_antes": qtd_char_antes,
+                    "qtd_char_depois": qtd_char_depois,
+                    "tipo_simb": tipo_simb,
+                    "linhas": {token_info["linha"]}
+                }
+            else:
+                self.tabela_simbolos[lexeme]["linhas"].add(token_info["linha"])
+
+    def determinar_tipo(self, codigo):
+        return self.TIPOS.get(codigo, "-")
 
     def obter_indice_simbolo(self, lexeme):
         for indice, (simbolo, _) in enumerate(self.tabela_simbolos.items(), start=1):
             if simbolo == lexeme:
                 return indice
-        return -1
+        return None
 
     def is_whitespace(self, char):
-        return char in ' \t\n\r'
+        return char in {' ', '\t', '\n', '\r'}
 
     def is_letter(self, char):
         return 'A' <= char <= 'Z'
