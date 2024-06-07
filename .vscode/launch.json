@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/staticChecker.py",
             "console": "integratedTerminal",
-            "args": ["teste.241"]
+            "args": ["teste"]
         }
     ]
 }

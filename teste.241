@@ -1,5 +1,5 @@
 teste := b+5*3
-euprecisoescre$ver30letraslimitando otexto
+eu&precisoescre$ver30letraslimitandk otexto
 Se teste == 0.0332
     imprime "O teste eh"
     imprime 'x'
@@ -7,7 +7,8 @@ Se teste == 0.0332
     false
 //fimse
 varia[2]?
-teste
+teste@sadas
 2.e23
 2.e+24
 2.e-25
+código

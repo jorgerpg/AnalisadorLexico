@@ -99,10 +99,14 @@ class AnalisadorLexico:
         # Substitui comentários de linha por espaços em branco, preservando quebras de linha
         texto = re.sub(r'//.*', lambda m: ' ' * (len(m.group(0))), texto)
         return texto
-
+    
     def reconhecerTokens(self):
         while self.posicao < len(self.buffer):
             if self.is_whitespace(self.buffer[self.posicao]):
+                self.avancar_posicao()
+                continue
+
+            if not self.is_valid_char(self.buffer[self.posicao]):
                 self.avancar_posicao()
                 continue
 
@@ -149,7 +153,7 @@ class AnalisadorLexico:
                 }
             else:
                 self.tabela_simbolos[lexeme]["linhas"].add(token_info["linha"])
-
+                
     def determinar_tipo(self, codigo):
         return self.TIPOS.get(codigo, "-")
 
@@ -168,6 +172,9 @@ class AnalisadorLexico:
     def is_digit(self, char):
         return '0' <= char <= '9'
 
+    def is_valid_char(self, char):
+        return self.is_letter(char) or self.is_digit(char) or self.is_whitespace(char) or char in {'"', "'", '(', ')', ',', ':', ';', '[', ']', '{', '}', '-', '*', '/', '+', '!', '#', '<', '=', '>', '%', '?'}
+
     def avancar_posicao(self):
         if self.posicao < len(self.buffer):
             if self.buffer[self.posicao] == '\n':
@@ -178,11 +185,15 @@ class AnalisadorLexico:
             self.posicao += 1
 
     def reconhecer_nome(self):
-        inicio = self.posicao
         coluna_inicio = self.coluna
-        while self.posicao < len(self.buffer) and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao])):
+        nome = []
+
+        while self.posicao < len(self.buffer) and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao]) or not self.is_valid_char(self.buffer[self.posicao])):
+            if self.is_valid_char(self.buffer[self.posicao]):
+                nome.append(self.buffer[self.posicao])
             self.avancar_posicao()
-        nome = self.buffer[inicio:self.posicao][:30]  # Limita a 30 caracteres
+
+        nome = ''.join(nome)[:30]  # Limita a 30 caracteres
         return {"token": nome, 
                 "linha": self.linha, 
                 "coluna": coluna_inicio, 
