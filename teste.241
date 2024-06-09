@@ -1,14 +1,24 @@
 teste := b+5*3
 eu&precisoescre$ver30letraslimitandk otexto
 Se teste == 0.0332
-    imprime "O teste eh"
+    imprime "O teste eh menor que 30"
     imprime 'x'
+    "O teste eh maior que 30 vamos continuar digitando"
+    "O teste eh 30semcontaras aspas"
     teste
     false
+123456789012345678901234567890
+1234567890123456789012345678901
+12345678901234567890123456789
+1234567890123456789012345678901234567890
 //fimse
 varia[2]?
 teste@sadas
-2.e23
-2.e+24
-2.e-25
+2.e23 // float
+2.e+24 // float
+2.e2334534654537637234523452365 // float
+2.3434e2334534654537637234523452 // float
+2.3434234324324343434343434343e2334534654537637234523452 // float
+2324324324343434343434343434342.34342343243243434343434 // inteiro
+2.e-25 // float
 código

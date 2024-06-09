@@ -11,24 +11,19 @@ class AnalisadorLexico:
         "tipoParam": "A23", "tipoVar": "A24", "true": "A25", "vazio": "A26",
         "%": "B01", "(": "B02", ")": "B03", ",": "B04", ":": "B05", ":=": "B06",
         ";": "B07", "?": "B08", "[": "B09", "]": "B10", "{": "B11", "}": "B12",
-        "-": "B13", "*": "B14", "/": "B15", "+": "B16", "!=": "B17", "#": "B18",
-        "<": "B19", "<=": "B20", "==": "B21", ">": "B22", ">=":"B23",
+        "-": "B13", "*": "B14", "/": "B15", "+": "B16", "!=": "B17", "#": "B17",
+        "<": "B18", "<=": "B19", "==": "B20", ">": "B21", ">=":"B22",
         "consCadeia": "C01", "consCaracter": "C02", "consInteiro": "C03", "consReal": "C04",
         "nomFuncao": "C05", "nomPrograma": "C06", "variavel": "C07",
     }
 
     RESERVADAS = {k.upper(): v for k, v in ATOMOS.items()}  # Mapeamento de palavras reservadas em maiúsculas
 
-    TIPOS = { # Mapeia os códigos de átomos para os tipos correspondentes
-        "A01": "STR", "A02": "CHC", "A03": "declaracoes", "A05": "BOO",
-        "A14": "INT", "A18": "PFO", "A25": "BOO", "A26": "VOI",
-        "C01": "STR", "C02": "CHC", "C03": "INT", "C04": "PFO", 
-        "C05": "STR", "C06": "STR", "C07": "STR",
-    }
-
     # Inicializa o analisador léxico, carregando o arquivo, inicializa algumas variáveis
     def __init__(self, nome_arquivo):
         self.nome_arquivo = nome_arquivo
+
+        self.valid_symbols = {'"', "'", '(', ')', ',', ':', ';', '[', ']', '{', '}', '-', '*', '/', '+', '!', '#', '<', '=', '>', '%', '?', '_', '$'}
         self.posicao = 0
         self.buffer = ''
         self.simbolos = []
@@ -123,35 +118,24 @@ class AnalisadorLexico:
             if self.buffer[self.posicao] == '"':
                 # Reconhece uma cadeia (string) e classifica como tal
                 token_info = self.reconhecer_cadeia()
-                token_info["codigo"] = "C01"  # Define o código para cadeia
-                tipo_simb = "STR"  # Define o tipo do símbolo como string
 
             # Verifica se o caractere atual é uma aspas simples (')
             elif self.buffer[self.posicao] == "'":
                 # Reconhece um caractere e classifica como tal
                 token_info = self.reconhecer_caracter()
-                token_info["codigo"] = "C02"  # Define o código para caractere
-                tipo_simb = "CHC"  # Define o tipo do símbolo como caractere
 
             # Verifica se o caractere atual é uma letra
             elif self.is_letter(self.buffer[self.posicao]):
                 # Reconhece um nome (possivelmente uma palavra reservada) e classifica
                 token_info = self.reconhecer_nome()
-                codigo = self.RESERVADAS.get(token_info["token"], "C07")  # Verifica se é uma palavra reservada
-                token_info["codigo"] = codigo  # Define o código correspondente
-                tipo_simb = self.determinar_tipo(codigo)  # Determina o tipo do símbolo
+                token_info["codigo"] = "C07"  # Define o código correspondente
+                token_info["tipo"] = "VOI"  # Determina o tipo do símbolo
 
             # Verifica se o caractere atual é um dígito
             elif self.is_digit(self.buffer[self.posicao]):
-                # Tenta reconhecer um número real, caso contrário, reconhece um número inteiro
-                token_info = self.reconhecer_real()  # Tenta reconhecer um número real
-                if token_info is None:
-                    token_info = self.reconhecer_numero()  # Reconhece um número inteiro
-                    token_info["codigo"] = "C03"  # Define o código para número inteiro
-                    tipo_simb = "INT"  # Define o tipo do símbolo como inteiro
-                else:
-                    token_info["codigo"] = "C04"  # Define o código para número real
-                    tipo_simb = "PFO"  # Define o tipo do símbolo como ponto flutuante
+                # Tenta reconhecer um número inteiro, caso encontre "." tenta reconhecer um numero real
+                token_info = self.reconhecer_numero()  # Reconhece um número inteiro
+                    
 
             else:
                 # Ignora outros caracteres e avança para o próximo
@@ -160,29 +144,24 @@ class AnalisadorLexico:
 
             # Obtém informações sobre o lexema atual
             lexeme = token_info["token"]
-            qtd_char_antes = len(lexeme)
-            qtd_char_depois = min(qtd_char_antes, 30)  # Limita o número de caracteres exibidos no relatório
 
             # Obtém o índice do símbolo na tabela de símbolos ou adiciona um novo
             token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
             self.simbolos.append(token_info)  # Adiciona as informações do símbolo à lista de símbolos
 
-            # Adiciona ou atualiza informações sobre o lexema na tabela de símbolos
-            if lexeme not in self.tabela_simbolos:
-                self.tabela_simbolos[lexeme] = {
-                    "codigo": token_info["codigo"],
-                    "qtd_char_antes": qtd_char_antes,
-                    "qtd_char_depois": qtd_char_depois,
-                    "tipo_simb": tipo_simb,
-                    "linhas": {token_info["linha"]}  # Armazena as linhas onde o lexema ocorre
-                }
-            else:
-                # Se o lexema já existe na tabela, apenas atualiza as informações das linhas
-                self.tabela_simbolos[lexeme]["linhas"].add(token_info["linha"])
-  
-    def determinar_tipo(self, codigo):
-        # Retorna o tipo correspondente ao código do átomo
-        return self.TIPOS.get(codigo, "-")  # Retorna o tipo correspondente ao código ou "-" se não encontrado
+            if token_info["token"].upper() not in self.RESERVADAS:
+                # Adiciona ou atualiza informações sobre o lexema na tabela de símbolos
+                if lexeme not in self.tabela_simbolos:
+                    self.tabela_simbolos[lexeme] = {
+                        "codigo": token_info["codigo"],
+                        "qtd_char_antes":  token_info["qtd_char_antes"],
+                        "qtd_char_depois":  token_info["qtd_char_depois"],
+                        "tipo_simb": token_info["tipo"],
+                        "linhas": {token_info["linha"]}  # Armazena as linhas onde o lexema ocorre
+                    }
+                else:
+                    # Se o lexema já existe na tabela, apenas atualiza as informações das linhas
+                    self.tabela_simbolos[lexeme]["linhas"].add(token_info["linha"])
 
     def obter_indice_simbolo(self, lexeme):
         # Obtém o índice do símbolo na tabela de símbolos
@@ -205,7 +184,7 @@ class AnalisadorLexico:
 
     def is_valid_char(self, char):
         # Verifica se o caractere é válido para um símbolo léxico
-        return self.is_letter(char) or self.is_digit(char) or self.is_whitespace(char) or char in {'"', "'", '(', ')', ',', ':', ';', '[', ']', '{', '}', '-', '*', '/', '+', '!', '#', '<', '=', '>', '%', '?'}
+        return self.is_letter(char) or self.is_digit(char) or self.is_whitespace(char) or char in self.valid_symbols
 
     def avancar_posicao(self):
         # Avança a posição atual no buffer de texto
@@ -219,6 +198,7 @@ class AnalisadorLexico:
 
     def reconhecer_nome(self):
         # Reconhece um nome (identificador) no texto
+        inicio = self.posicao
         coluna_inicio = self.coluna  # Guarda a coluna inicial do nome
         nome = []
 
@@ -228,68 +208,27 @@ class AnalisadorLexico:
                 nome.append(self.buffer[self.posicao])
             self.avancar_posicao()  # Avança para o próximo caractere
 
+        # Considera as aspas duplas na contagem de caracteres
+        qtd_char = self.posicao - inicio
+        qtd_char_depois = min(qtd_char, 30)  # Limita a 30 caracteres
+        qtd_char_antes = max(qtd_char, qtd_char_depois)
+
         nome = ''.join(nome)[:30]  # Limita o nome a 30 caracteres
         return {"token": nome, 
                 "linha": self.linha, 
                 "coluna": coluna_inicio, 
-                "codigo": "C07"}  # Retorna o nome com informações adicionais (linha, coluna, código)
+                "codigo": "C07",  # Retorna o número com informações adicionais (linha, coluna, código)
+                "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes de truncar
+                "qtd_char_depois": qtd_char_depois}  # Retorna a cadeia com informações adicionais (linha, coluna, código, quantidade de caracteres)
+
 
     def reconhecer_numero(self):
         # Reconhece um número inteiro no texto
         inicio = self.posicao
         coluna_inicio = self.coluna
+        ponto_encontrado = False  # Flag para indicar se um ponto foi encontrado
 
         # Loop para reconhecer o número até encontrar um caractere não numérico
-        while self.posicao < len(self.buffer) and self.is_digit(self.buffer[self.posicao]):
-            self.avancar_posicao()  # Avança para o próximo caractere
-
-        numero = self.buffer[inicio:self.posicao]  # Obtém o número reconhecido
-        return {"token": numero, 
-                "linha": self.linha, 
-                "coluna": coluna_inicio, 
-                "codigo": "C03"}  # Retorna o número com informações adicionais (linha, coluna, código)
-
-    def reconhecer_cadeia(self):
-        # Reconhece uma cadeia (string) delimitada por aspas duplas no texto
-        self.avancar_posicao()  # Pula o primeiro caractere de aspas duplas
-        inicio = self.posicao
-        coluna_inicio = self.coluna
-
-        # Loop para reconhecer a cadeia até encontrar o próximo caractere de aspas duplas
-        while self.posicao < len(self.buffer) and self.buffer[self.posicao] != '"':
-            self.avancar_posicao()  # Avança para o próximo caractere
-
-        cadeia = self.buffer[inicio:self.posicao][:30]  # Limita a cadeia a 30 caracteres
-        self.avancar_posicao()  # Pula o último caractere de aspas duplas
-        return {"token": cadeia, 
-                "linha": self.linha, 
-                "coluna": coluna_inicio, 
-                "codigo": "C01"}  # Retorna a cadeia com informações adicionais (linha, coluna, código)
-
-    def reconhecer_caracter(self):
-        # Reconhece um caractere delimitado por aspas simples no texto
-        self.avancar_posicao()  # Pula o primeiro caractere de aspas simples
-
-        if self.posicao < len(self.buffer):
-            caracter = self.buffer[self.posicao]  # Obtém o caractere
-            self.avancar_posicao()  # Pula o caractere reconhecido
-
-            if self.posicao < len(self.buffer) and self.buffer[self.posicao] == "'":
-                self.avancar_posicao()  # Pula o último caractere de aspas simples
-                return {"token": caracter, 
-                        "linha": self.linha, 
-                        "coluna": self.coluna - 1, 
-                        "codigo": "C02"}  # Retorna o caractere com informações adicionais (linha, coluna, código)
-
-        return None  # Retorna None se não for possível reconhecer um caractere válido
-
-    def reconhecer_real(self):
-        # Reconhece um número real (com ponto flutuante) no texto
-        inicio = self.posicao
-        ponto_encontrado = False
-        expoente_encontrado = False
-        pos_expoente = -1
-
         while self.posicao < len(self.buffer):
             char = self.buffer[self.posicao]
 
@@ -298,29 +237,121 @@ class AnalisadorLexico:
             elif char == '.' and not ponto_encontrado:
                 ponto_encontrado = True
                 self.avancar_posicao()  # Avança para o próximo caractere
-            elif char in ('e', 'E') and not expoente_encontrado:
-                expoente_encontrado = True
-                self.avancar_posicao()  # Avança para o próximo caractere
-
-                if self.posicao < len(self.buffer) and self.buffer[self.posicao] in ('+', '-'):
-                    self.avancar_posicao()  # Avança para o próximo caractere
-
-                pos_expoente = self.posicao  # Guarda a posição do caractere após o expoente
+                # Começa a procurar um número real
+                return self.reconhecer_real(inicio, coluna_inicio)
             else:
                 break  # Se encontrar um caractere inválido, sai do loop
 
-        # Verifica se foi encontrado um ponto e se o expoente foi encontrado corretamente
-        if ponto_encontrado:
-            token = self.buffer[inicio:self.posicao]  # Obtém o número reconhecido
+        # Considera as aspas duplas na contagem de caracteres
+        qtd_char = self.posicao - inicio
+        qtd_char_depois = min(qtd_char, 30)  # Limita a 30 caracteres
+        qtd_char_antes = max(qtd_char, qtd_char_depois)
+        
+        numero = self.buffer[inicio:self.posicao][:30]  # Obtém o número reconhecido
+        
+        return {"token": numero, 
+                "linha": self.linha, 
+                "coluna": coluna_inicio, 
+                "tipo": "INT",
+                "codigo": "C03",  # Retorna o número com informações adicionais (linha, coluna, código)
+                "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes de truncar
+                "qtd_char_depois": qtd_char_depois}  # Retorna a cadeia com informações adicionais (linha, coluna, código, quantidade de caracteres)
+        
+    def reconhecer_cadeia(self):
+        # Reconhece uma cadeia (string) delimitada por aspas duplas no texto
+        inicio = self.posicao
+        coluna_inicio = self.coluna
+        self.avancar_posicao()  # Pula o primeiro caractere de aspas duplas
 
-            if expoente_encontrado and pos_expoente < self.posicao:
-                return {"token": token, 
-                        "linha": self.linha, 
-                        "coluna": self.coluna - len(token)}  # Retorna o número com informações adicionais (linha, coluna)
-            elif not expoente_encontrado:
-                return {"token": token, 
-                        "linha": self.linha, 
-                        "coluna": self.coluna - len(token)}  # Retorna o número com informações adicionais (linha, coluna)
+        # Loop para reconhecer a cadeia até encontrar o próximo caractere de aspas duplas
+        while self.posicao < len(self.buffer) and self.buffer[self.posicao] != '"':
+            self.avancar_posicao()  # Avança para o próximo caractere
 
-        self.posicao = inicio  # Restaura a posição inicial no buffer de texto
-        return None  # Retorna None se não for possível reconhecer um número real
+        self.avancar_posicao()  # Pulka o char de aspas duplas
+
+        # Considera as aspas duplas na contagem de caracteres
+        qtd_char = self.posicao - inicio
+        qtd_char_depois = min(qtd_char, 30)  # Limita a 30 caracteres
+        qtd_char_antes = max(qtd_char, qtd_char_depois)
+
+        if(qtd_char > 30):
+            # Obtém a cadeia limitada a 28 caracteres entre as aspas
+            cadeia = self.buffer[inicio:self.posicao][:29] + '"'
+        else:
+            # Obtém a cadeia limitada a 28 caracteres entre as aspas
+            cadeia = self.buffer[inicio:self.posicao][:qtd_char_depois]
+
+        return {"token": cadeia, 
+                "linha": self.linha, 
+                "coluna": coluna_inicio, 
+                "codigo": "C01",  # Define o código para cadeia
+                "tipo" : "STR",
+                "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes de truncar
+                "qtd_char_depois": qtd_char_depois}  # Retorna a cadeia com informações adicionais (linha, coluna, código, quantidade de caracteres)
+
+    def reconhecer_caracter(self):
+        # Reconhece um caractere delimitado por aspas simples no texto
+        self.avancar_posicao()  # Pula o primeiro caractere de aspas simples
+
+        if self.posicao < len(self.buffer):
+            caracter = "'" + self.buffer[self.posicao] + "'"  # Adiciona as aspas simples ao redor do caractere
+            self.avancar_posicao()  # Pula o caractere reconhecido
+    
+            if self.posicao < len(self.buffer) and self.buffer[self.posicao] == "'":
+                self.avancar_posicao()  # Pula o último caractere de aspas simples
+                return {"token": caracter, 
+                        "linha": self.linha, 
+                        "coluna": self.coluna - 1, 
+                        "codigo": "C02",  # Define o código para cadeia
+                        "tipo" : "CHC",
+                        "qtd_char_antes": len(caracter),  # Quantidade de caracteres antes de truncar
+                        "qtd_char_depois": len(caracter)}
+            
+        return None  # Retorna None se não for possível reconhecer um caractere válido
+    
+    def reconhecer_real(self, inicio, coluna_inicio):
+        # Reconhece um número real (com ponto flutuante) no texto
+        expoente_encontrado = False
+        pos_expoente = -1
+
+        while self.posicao < len(self.buffer):
+            char = self.buffer[self.posicao]
+
+            if self.is_digit(char):
+                self.avancar_posicao()  # Avança para o próximo caractere
+            elif char in ('e', 'E') and not expoente_encontrado:
+                expoente_encontrado = True
+                self.avancar_posicao()  # Avança para o próximo caractere
+                if self.posicao < len(self.buffer) and self.buffer[self.posicao] in ('+', '-'):
+                    self.avancar_posicao()  # Avança para o próximo caractere
+            else:
+                break  # Se encontrar um caractere inválido, sai do loop
+
+
+        # Considera as aspas duplas na contagem de caracteres
+        qtd_char = self.posicao - inicio
+        qtd_char_depois = min(qtd_char, 30)  # Limita a 30 caracteres
+        qtd_char_antes = max(qtd_char, qtd_char_depois)
+
+        if(qtd_char > 30):
+            token = self.buffer[inicio:self.posicao][:30]
+            if '.' in token:
+                tipo_simb = "PFO"  # Define o tipo do símbolo como número real
+                codigo = "C04"  # Define o código para número real
+            else:
+                tipo_simb = "INT"  # Define o tipo do símbolo como número inteiro
+                codigo = "C03"  # Define o código para número inteiro
+
+            # analise do token
+        else:
+            token = self.buffer[inicio:self.posicao][:qtd_char_depois]  # Obtém o número reconhecido
+            tipo_simb = "PFO"  # Define o tipo do símbolo como número real
+            codigo = "C04"  # Define o código para número real
+
+        return {"token": token, 
+                "linha": self.linha,  
+                "codigo": codigo,
+                "tipo": tipo_simb,
+                "coluna": self.coluna - len(token),
+                "qtd_char_antes": qtd_char_antes,  
+                "qtd_char_depois": qtd_char_depois}

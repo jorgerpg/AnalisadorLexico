@@ -15,9 +15,6 @@ class AnalisadorSintatico:
     def get_atomos(self):
         return self.atomos
 
-    def get_simbolos(self):
-        return self.analisador_lexico.get_simbolos()
-
 def main():
     if len(sys.argv) != 2:
         print("Uso: staticChecker.py <nome_arquivo>")
