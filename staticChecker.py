@@ -4,8 +4,9 @@ from analisadorLexico import AnalisadorLexico
 
 class AnalisadorSintatico:
     def __init__(self, nome_arquivo):
-        self.analisador_lexico = AnalisadorLexico(nome_arquivo)
+        self.analisador_lexico = AnalisadorLexico(nome_arquivo, self)
         self.atomos = []
+        self.escopo = 1
 
     def analisar(self):
         self.analisador_lexico.reconhecerTokens()
@@ -14,6 +15,12 @@ class AnalisadorSintatico:
 
     def get_atomos(self):
         return self.atomos
+    
+    def get_escopo(self):
+        return self.escopo
+    
+    def set_escopo(self, esc):
+        self.escopo = esc
 
 def main():
     if len(sys.argv) != 2:
