@@ -4,93 +4,24 @@ import re
 LIMITE_QTD_CHAR = 30
 
 class AnalisadorLexico:
-    ATOMOS = {
-        "cadeia": "A01", "caracter": "A02", "declaracoes": "A03", "enquanto": "A04",
-        "false": "A05", "fimDeclaracoes": "A06", "fimEnquanto": "A07", "fimFunc": "A08",
-        "fimFuncoes": "A09", "fimPrograma": "A10", "fimSe": "A11", "funcoes": "A12",
-        "imprime": "A13", "inteiro": "A14", "logico": "A15", "pausa": "A16", "programa": "A17",
-        "real": "A18", "retorna": "A19", "se": "A20", "senao": "A21", "tipoFunc": "A22",
-        "tipoParam": "A23", "tipoVar": "A24", "true": "A25", "vazio": "A26",
-        "%": "B01", "(": "B02", ")": "B03", ",": "B04", ":": "B05", ":=": "B06",
-        ";": "B07", "?": "B08", "[": "B09", "]": "B10", "{": "B11", "}": "B12",
-        "-": "B13", "*": "B14", "/": "B15", "+": "B16", "!=": "B17", "#": "B17",
-        "<": "B18", "<=": "B19", "==": "B20", ">": "B21", ">=":"B22",
-        "consCadeia": "C01", "consCaracter": "C02", "consInteiro": "C03", "consReal": "C04",
-        "nomFuncao": "C05", "nomPrograma": "C06", "variavel": "C07",
-    }
-
-    RESERVADAS = {k.upper(): v for k, v in ATOMOS.items()}
-
     # Método de inicialização da classe AnalisadorLexico
-    def __init__(self, nome_arquivo, analisador_sintatico):
+    def __init__(self, analisador_sintatico):
         # Inicializa os atributos da classe
-        self.nome_arquivo = nome_arquivo
         self.posicao = 0
         self.buffer = ''
         self.buffer_size = 0
         self.simbolos = []
         self.tabela_simbolos = {}
-        self.carregar_arquivo()  # Chama o método para carregar o arquivo
         self.linha = 1
         self.coluna = 0
         self.linhas_originais = self.buffer.splitlines()  # Divide o texto em linhas
         self.analisador_sintatico = analisador_sintatico
 
     # Método para carregar o conteúdo do arquivo
-    def carregar_arquivo(self):
-        try:
-            with open(self.nome_arquivo, 'r') as arquivo:
-                self.buffer = self.filtrar_comentarios(arquivo.read().upper())  # Lê o arquivo e filtra comentários
+    def carregarBuffer(self, buffer):
+                self.buffer = self.filtrar_comentarios(buffer)  # Lê o buffer e filtra comentários
                 self.buffer_size = len(self.buffer)  # Calcula o tamanho do buffer
-        except FileNotFoundError:
-            print(f"Erro: O arquivo '{self.nome_arquivo}' não foi encontrado.")
-            sys.exit(1)
-        except Exception as e:
-            print(f"Ocorreu um erro: {e}")
-            sys.exit(1)
-
-    # Método para gerar relatórios léxicos e tabela de símbolos
-    def gerar_relatorios(self):
-        self.gerar_relatorio_lexico()  # Chama o método para gerar o relatório léxico
-        self.gerar_relatorio_tabela_simbolos()  # Chama o método para gerar o relatório da tabela de símbolos
-
-    # Método para gerar relatório léxico
-    def gerar_relatorio_lexico(self):
-        with open(self.nome_arquivo + '.LEX', 'w') as lex_file:
-            # Escreve informações de equipe no arquivo de relatório léxico
-            lex_file.write("Codigo da Equipe: 04\n")
-            lex_file.write("Componentes:\n")
-            lex_file.write("    Amanda Bandeira Aragao Rigaud Lima; amanda.lima@aln.senaicimatec.edu.br; (71)99142-8451\n")
-            lex_file.write("    Jorge Ricarte Passos Goncalves; jorge.goncalves@aln.senaicimatec.edu.br; (71)99966-5608\n")
-            lex_file.write("    Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99267-9326\n")
-            lex_file.write("    Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915\n\n")
-            lex_file.write(f"RELATORIO DA ANALISE LEXICA. Texto fonte analisado: {self.nome_arquivo}.\n\n")
-
-            # Escreve informações de tokens no arquivo de relatório léxico
-            for simbolo in self.simbolos:
-                lex_file.write("-------------------------------------------------------------------------------------------------------------------------------------------------\n")
-                lex_file.write(f'Lexeme: {simbolo["token"]}, Codigo: {simbolo["codigo"]}, IndiceTabSimb: {simbolo["indice"]}, Linha: {simbolo["linha"]}.\n')
-
-    # Método para gerar relatório da tabela de símbolos
-    def gerar_relatorio_tabela_simbolos(self):
-        with open(self.nome_arquivo + '.TAB', 'w') as tab_file:
-            # Escreve informações de equipe no arquivo de relatório da tabela de símbolos
-            tab_file.write("Codigo da Equipe: 04\n")
-            tab_file.write("Componentes:\n")
-            tab_file.write("    Amanda Bandeira Aragao Rigaud Lima; amanda.lima@aln.senaicimatec.edu.br; (71)99142-8451\n")
-            tab_file.write("    Jorge Ricarte Passos Goncalves; jorge.goncalves@aln.senaicimatec.edu.br; (71)99966-5608\n")
-            tab_file.write("    Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99267-9326\n")
-            tab_file.write("    Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99166-1915\n\n")
-            tab_file.write(f"RELATORIO DA TABELA DE SIMBOLOS. Texto fonte analisado: {self.nome_arquivo}.\n\n")
-
-            # Escreve informações da tabela de símbolos no arquivo de relatório da tabela de símbolos
-            for indice, (lexeme, info) in enumerate(self.tabela_simbolos.items(), start=1):
-                linhas = ', '.join(map(str, sorted(info['linhas'])[:5]))
-                tab_file.write("-------------------------------------------------------------------------------------------------------------------------------------------------\n")
-                tab_file.write(f"Entrada: {indice}, Codigo: {info['codigo']}, Lexeme: {lexeme},\n")
-                tab_file.write(f"QtdCharAntesTrunc: {info['qtd_char_antes']}, QtdCharDepoisTrunc: {info['qtd_char_depois']},\n")
-                tab_file.write(f"TipoSimb: {info['tipo_simb']}, Linhas: {{{linhas}}}.\n\n")
-
+    
     # Método para filtrar comentários do texto
     def filtrar_comentarios(self, texto):
         while True:
@@ -140,7 +71,7 @@ class AnalisadorLexico:
             lexeme = token_info["token"]  # Obtém o lexema do token
 
             # Se o token não for uma palavra reservada, adiciona à tabela de símbolos
-            if token_info["token"] not in self.RESERVADAS:
+            if token_info["token"] not in self.analisador_sintatico.RESERVADAS:
                 # Adiciona informações sobre o token à lista de símbolos
                 token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
                 self.simbolos.append(token_info)
@@ -156,7 +87,7 @@ class AnalisadorLexico:
                 else:
                     self.tabela_simbolos[lexeme]["linhas"].add(token_info["linha"])
             else:
-                token_info["codigo"] = self.RESERVADAS.get(lexeme, None)
+                token_info["codigo"] = self.analisador_sintatico.RESERVADAS.get(lexeme, None)
                 # Adiciona informações sobre o token à lista de símbolos
                 token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
                 self.simbolos.append(token_info)
