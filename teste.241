@@ -5,6 +5,8 @@ eu&precisoescre$ver30letraslimitandk otexto
 Se teste == 0.0332
     imprime "O teste eh men@or que 30"
     imprime 'x'
+    'e_'
+    '9'
     "O teste eh maior que 30 vamos continuar digitando"
     "O teste eh 30semcontaras aspas"
     teste
@@ -25,4 +27,4 @@ teste@sadas
 23243243243434343434343434242.34342343243243434343434 // inteiro
 2. // inteiro eh limit
 2.e-25 // float
-código
+codigo

@@ -25,7 +25,6 @@ class AnalisadorLexico:
     def __init__(self, nome_arquivo, analisador_sintatico):
         # Inicializa os atributos da classe
         self.nome_arquivo = nome_arquivo
-        self.valid_symbols = {'"', "'", '(', ')', ',', ':', ';', '[', ']', '{', '}', '-', '*', '/', '+', '!', '#', '<', '=', '>', '%', '?', '$'}
         self.posicao = 0
         self.buffer = ''
         self.buffer_size = 0
@@ -116,11 +115,6 @@ class AnalisadorLexico:
                 self.avancar_posicao()  # Move para a próxima posição
                 continue
 
-            # Ignora caracteres inválidos
-            if not self.is_valid_char(self.buffer[self.posicao]):
-                self.avancar_posicao()  # Move para a próxima posição
-                continue
-
             # Verifica se o caractere atual é uma aspas dupla, indicando uma cadeia de caracteres
             if self.buffer[self.posicao] == '"':
                 token_info = self.reconhecer_cadeia()  # Chama o método para reconhecer cadeias de caracteres
@@ -129,24 +123,28 @@ class AnalisadorLexico:
             # Verifica se o caractere atual é uma aspas simples, indicando um caractere
             elif self.buffer[self.posicao] == "'":
                 token_info = self.reconhecer_caracter()  # Chama o método para reconhecer caracteres
+                if(token_info == -1):  # Se o retorno indicar erro, continua para o próximo caractere
+                    continue
             # Verifica se o caractere atual é uma letra
             elif self.is_letter(self.buffer[self.posicao]):
                 token_info = self.reconhecer_nome()  # Chama o método para reconhecer nomes
             # Verifica se o caractere atual é um dígito
             elif self.is_digit(self.buffer[self.posicao]):
                 token_info = self.reconhecer_numero()  # Chama o método para reconhecer números
+            elif self.is_operador(self.buffer[self.posicao]):
+                token_info = self.reconhecer_operando()
             else:
                 self.avancar_posicao()  # Move para a próxima posição
                 continue
 
             lexeme = token_info["token"]  # Obtém o lexema do token
 
-            # Adiciona informações sobre o token à lista de símbolos
-            token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
-            self.simbolos.append(token_info)
-
             # Se o token não for uma palavra reservada, adiciona à tabela de símbolos
             if token_info["token"] not in self.RESERVADAS:
+                # Adiciona informações sobre o token à lista de símbolos
+                token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
+                self.simbolos.append(token_info)
+
                 if lexeme not in self.tabela_simbolos:
                     self.tabela_simbolos[lexeme] = {
                         "codigo": token_info["codigo"],
@@ -157,6 +155,12 @@ class AnalisadorLexico:
                     }
                 else:
                     self.tabela_simbolos[lexeme]["linhas"].add(token_info["linha"])
+            else:
+                token_info["codigo"] = self.RESERVADAS.get(lexeme, None)
+                # Adiciona informações sobre o token à lista de símbolos
+                token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
+                self.simbolos.append(token_info)
+                
 
     # Método para obter o índice de um símbolo na tabela de símbolos
     def obter_indice_simbolo(self, lexeme):
@@ -164,6 +168,9 @@ class AnalisadorLexico:
             if simbolo == lexeme:
                 return indice
         return None
+    
+    def is_operador(self, char):
+        return char in  { '(', ')', ',', ':', ';', '[', ']', '{', '}', '-', '*', '/', '+', '!', '#', '<', '=', '>', '%', '?'}
 
     # Método para verificar se um caractere é um espaço em branco
     def is_whitespace(self, char):
@@ -177,26 +184,40 @@ class AnalisadorLexico:
     def is_digit(self, char):
         return '0' <= char <= '9'
 
-    # Método para verificar se um caractere é válido
-    def is_valid_char(self, char):
-        return self.is_letter(char) or self.is_digit(char) or self.is_whitespace(char) or char in self.valid_symbols
-
     # Método para avançar para a próxima posição no texto
     def avancar_posicao(self):
-        self.coluna += 1
         if self.buffer[self.posicao] == '\n':
             self.linha += 1
-            self.coluna = 0
         self.posicao += 1
 
+    def reconhecer_operando(self):
+        inicio = self.posicao
+        operador = self.buffer[self.posicao]
+        self.avancar_posicao()
+
+        if self.posicao < self.buffer_size and operador in {':', '!', '<', '>', '='}: 
+            if(self.buffer[self.posicao] == '='):
+                self.avancar_posicao()
+                operador = self.buffer[inicio:self.posicao]
+
+        return {"token": operador, 
+                "linha": self.linha,
+                "tipo": "-",  # Tipo do token (no caso, caractere)
+                "qtd_char_antes": len(operador),  # Quantidade de caracteres (um caractere)
+                "qtd_char_depois": len(operador)}  # Quantidade de caracteres depois do truncamento (um caractere)
+
+
+    # Método para verificar se um caractere é válido
+    def is_valid_nome(self, char):
+        return self.is_letter(char) or self.is_digit(char) or char == '-'
+    
     def reconhecer_nome(self):
-        coluna_inicio = self.coluna  # Guarda a coluna inicial do token
         nome = []  # Lista para armazenar os caracteres do nome
 
         # Loop para percorrer o texto enquanto houver caracteres válidos para um nome
-        while self.posicao < self.buffer_size and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao]) or not self.is_valid_char(self.buffer[self.posicao])):
+        while self.posicao < self.buffer_size and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao])):
             # Adiciona o caractere atual ao nome se for válido ou um underscore
-            if self.is_valid_char(self.buffer[self.posicao]) or self.buffer[self.posicao] == '_':
+            if self.is_valid_nome(self.buffer[self.posicao]):
                 nome.append(self.buffer[self.posicao])
             self.avancar_posicao()  # Avança para o próximo caractere
 
@@ -231,7 +252,6 @@ class AnalisadorLexico:
         # Retorna um dicionário com as informações do token
         return {"token": nome, 
                 "linha": self.linha, 
-                "coluna": coluna_inicio, 
                 "tipo": "VOI",  # Tipo do token (no caso, identificador)
                 "codigo": codigo,  # Código do token
                 "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
@@ -239,7 +259,6 @@ class AnalisadorLexico:
 
     def reconhecer_numero(self):
         inicio = self.posicao  # Guarda a posição inicial do número
-        coluna_inicio = self.coluna  # Guarda a coluna inicial do número
 
         # Loop para percorrer o texto enquanto houver dígitos
         while self.posicao < self.buffer_size:
@@ -249,7 +268,7 @@ class AnalisadorLexico:
                 self.avancar_posicao()  # Avança para o próximo caractere
             elif char == '.':
                 self.avancar_posicao()
-                return self.reconhecer_real(inicio, coluna_inicio)  # Chama a função para reconhecer números reais se encontrar um ponto
+                return self.reconhecer_real(inicio)  # Chama a função para reconhecer números reais se encontrar um ponto
             else:
                 break
 
@@ -262,7 +281,6 @@ class AnalisadorLexico:
         # Retorna um dicionário com as informações do token
         return {"token": numero, 
                 "linha": self.linha, 
-                "coluna": coluna_inicio, 
                 "tipo": "INT",  # Tipo do token (no caso, número inteiro)
                 "codigo": "C03",  # Código do token
                 "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
@@ -313,28 +331,32 @@ class AnalisadorLexico:
         }
 
     def reconhecer_caracter(self):
+        inicio = self.posicao  # Guarda a posição inicial da cadeia
         self.avancar_posicao()  # Avança para o próximo caractere (após a aspas simples inicial)
 
-        if self.posicao < self.buffer_size:
-            caracter = "'" + self.buffer[self.posicao] + "'"  # Extrai o caractere do texto, incluindo aspas simples
+        while self.posicao < self.buffer_size:
+            if self.buffer[self.posicao] == "'" or self.buffer[self.posicao] == '\n':
+                break
+            if not self.is_letter(self.buffer[self.posicao]):
+                self.avancar_posicao()  # Avança para o próximo caractere
+                return -1
             self.avancar_posicao()  # Avança para o próximo caractere
 
-            # Verifica se o próximo caractere é uma aspas simples, indicando o fim do caractere
-            if self.posicao < self.buffer_size and self.buffer[self.posicao] == "'":
-                self.avancar_posicao()  # Avança para o próximo caractere (após a aspas simples final)
-                return {"token": caracter, 
-                        "linha": self.linha, 
-                        "coluna": self.coluna - 1,  # Ajusta a coluna para o início do caractere
-                        "codigo": "C02",  # Código para caractere
-                        "tipo": "CHC",  # Tipo do token (no caso, caractere)
-                        "qtd_char_antes": len(caracter),  # Quantidade de caracteres (um caractere)
-                        "qtd_char_depois": len(caracter)}  # Quantidade de caracteres depois do truncamento (um caractere)
-                
-        return None  # Retorna None se não foi possível reconhecer o caractere
+        self.avancar_posicao()  # Avança para o próximo caractere
+        caracter = self.buffer[inicio:self.posicao]
+        if (len(caracter) > 3 or not (self.is_letter(caracter[1]) and caracter[2] == "'")):
+            return -1
+        
+        return {"token": caracter, 
+                "linha": self.linha, 
+                "coluna": self.coluna - 1,  # Ajusta a coluna para o início do caractere
+                "codigo": "C02",  # Código para caractere
+                "tipo": "CHC",  # Tipo do token (no caso, caractere)
+                "qtd_char_antes": len(caracter),  # Quantidade de caracteres (um caractere)
+                "qtd_char_depois": len(caracter)}  # Quantidade de caracteres depois do truncamento (um caractere)
 
-    def reconhecer_real(self, inicio, coluna_inicio):
+    def reconhecer_real(self, inicio):
         expoente_encontrado = False  # Flag para indicar se um expoente foi encontrado
-        pos_expoente = -1  # Posição do expoente na cadeia
 
         # Loop para percorrer o texto enquanto houver dígitos ou um ponto (parte decimal)
         while self.posicao < self.buffer_size:
@@ -388,6 +410,5 @@ class AnalisadorLexico:
                 "linha": self.linha,  
                 "codigo": codigo,  # Código correspondente ao tipo do número (inteiro ou real)
                 "tipo": tipo_simb,  # Tipo do token (inteiro ou real)
-                "coluna": self.coluna - len(token),  # Coluna inicial do número
                 "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
                 "qtd_char_depois": qtd_char_depois}  # Quantidade de caracteres depois do truncamento
