@@ -15,7 +15,7 @@ TipoSimb: VOI, Linhas: {1}.
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 2, Codigo: C07, Lexeme: TESTE,
 QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
-TipoSimb: VOI, Linhas: {2, 5, 12, 20}.
+TipoSimb: VOI, Linhas: {2, 5, 19}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 3, Codigo: C07, Lexeme: B,
@@ -70,80 +70,80 @@ TipoSimb: CHC, Linhas: {7}.
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 13, Codigo: C01, Lexeme: "O TESTE EH MAIOR QUE 30 VAMO",
 QtdCharAntesTrunc: 50, QtdCharDepoisTrunc: 30,
-TipoSimb: STR, Linhas: {10}.
+TipoSimb: STR, Linhas: {9}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 14, Codigo: C01, Lexeme: "O TESTE EH 30SEMCONTARAS ASP",
 QtdCharAntesTrunc: 31, QtdCharDepoisTrunc: 30,
-TipoSimb: STR, Linhas: {11}.
+TipoSimb: STR, Linhas: {10}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 15, Codigo: C03, Lexeme: 123456789012345678901234567890,
 QtdCharAntesTrunc: 30, QtdCharDepoisTrunc: 30,
-TipoSimb: INT, Linhas: {14, 15, 17}.
+TipoSimb: INT, Linhas: {13, 14, 16}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 16, Codigo: C03, Lexeme: 12345678901234567890123456789,
 QtdCharAntesTrunc: 29, QtdCharDepoisTrunc: 29,
-TipoSimb: INT, Linhas: {16}.
+TipoSimb: INT, Linhas: {15}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 17, Codigo: C07, Lexeme: VARIA,
 QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
-TipoSimb: VOI, Linhas: {19}.
+TipoSimb: VOI, Linhas: {18}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 18, Codigo: C03, Lexeme: 2,
 QtdCharAntesTrunc: 1, QtdCharDepoisTrunc: 1,
-TipoSimb: INT, Linhas: {19, 28}.
+TipoSimb: INT, Linhas: {18, 27}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 19, Codigo: C07, Lexeme: SADAS,
 QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
-TipoSimb: VOI, Linhas: {20}.
+TipoSimb: VOI, Linhas: {19}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 20, Codigo: C04, Lexeme: 2.E23,
 QtdCharAntesTrunc: 5, QtdCharDepoisTrunc: 5,
-TipoSimb: PFO, Linhas: {21}.
+TipoSimb: PFO, Linhas: {20}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 21, Codigo: C04, Lexeme: 2.E+24,
 QtdCharAntesTrunc: 6, QtdCharDepoisTrunc: 6,
-TipoSimb: PFO, Linhas: {22}.
+TipoSimb: PFO, Linhas: {21}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 22, Codigo: C04, Lexeme: 2.E233453465453763723452345236,
 QtdCharAntesTrunc: 31, QtdCharDepoisTrunc: 30,
-TipoSimb: PFO, Linhas: {23}.
+TipoSimb: PFO, Linhas: {22}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 23, Codigo: C04, Lexeme: 2.3434E23345346545376372345234,
 QtdCharAntesTrunc: 32, QtdCharDepoisTrunc: 30,
-TipoSimb: PFO, Linhas: {24}.
+TipoSimb: PFO, Linhas: {23}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 24, Codigo: C04, Lexeme: 2.3434234324324343434343434343,
 QtdCharAntesTrunc: 56, QtdCharDepoisTrunc: 30,
-TipoSimb: PFO, Linhas: {25}.
+TipoSimb: PFO, Linhas: {24}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 25, Codigo: C03, Lexeme: 232432432434343434343434343434,
 QtdCharAntesTrunc: 55, QtdCharDepoisTrunc: 30,
-TipoSimb: INT, Linhas: {26}.
+TipoSimb: INT, Linhas: {25}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 26, Codigo: C03, Lexeme: 23243243243434343434343434242,
 QtdCharAntesTrunc: 53, QtdCharDepoisTrunc: 29,
-TipoSimb: INT, Linhas: {27}.
+TipoSimb: INT, Linhas: {26}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 27, Codigo: C04, Lexeme: 2.E-25,
 QtdCharAntesTrunc: 6, QtdCharDepoisTrunc: 6,
-TipoSimb: PFO, Linhas: {29}.
+TipoSimb: PFO, Linhas: {28}.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Entrada: 28, Codigo: C07, Lexeme: CODIGO,
 QtdCharAntesTrunc: 6, QtdCharDepoisTrunc: 6,
-TipoSimb: VOI, Linhas: {30}.
+TipoSimb: VOI, Linhas: {29}.
 

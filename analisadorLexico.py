@@ -117,6 +117,8 @@ class AnalisadorLexico:
 
     # Método para avançar para a próxima posição no texto
     def avancar_posicao(self):
+        if self.posicao == self.buffer_size:
+            return
         if self.buffer[self.posicao] == '\n':
             self.linha += 1
         self.posicao += 1
