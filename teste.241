@@ -1,4 +1,5 @@
-programa lapo
+programa _teste ABC
+programa as_teste
 teste := b+5*3
 funcoes functest
 eu&precisoescre$ver30letraslimitandk otexto
@@ -6,10 +7,10 @@ Se teste == 0.0332
     imprime "O teste eh men@or que 30"
     imprime 'x'
     'e_'
-    "O teste eh maior que 30 vamos continuar digitando"
+    "O teste eh maior que 30 vamos continuar digitando
     "O teste eh 30semcontaras aspas"
-    'teste
-    false
+    "teste
+    "false"
 123456789012345678901234567890
 1234567890123456789012345678901
 12345678901234567890123456789

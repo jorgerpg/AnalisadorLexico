@@ -57,7 +57,7 @@ class AnalisadorLexico:
                 if(token_info == -1):  # Se o retorno indicar erro, continua para o próximo caractere
                     continue
             # Verifica se o caractere atual é uma letra
-            elif self.is_letter(self.buffer[self.posicao]):
+            elif self.is_letter(self.buffer[self.posicao]) or self.buffer[self.posicao] == '_':
                 token_info = self.reconhecer_nome()  # Chama o método para reconhecer nomes
             # Verifica se o caractere atual é um dígito
             elif self.is_digit(self.buffer[self.posicao]):
@@ -92,7 +92,6 @@ class AnalisadorLexico:
                 token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
                 self.simbolos.append(token_info)
                 
-
     # Método para obter o índice de um símbolo na tabela de símbolos
     def obter_indice_simbolo(self, lexeme):
         for indice, (simbolo, _) in enumerate(self.tabela_simbolos.items(), start=1):
@@ -139,20 +138,25 @@ class AnalisadorLexico:
                 "qtd_char_antes": len(operador),  # Quantidade de caracteres (um caractere)
                 "qtd_char_depois": len(operador)}  # Quantidade de caracteres depois do truncamento (um caractere)
 
-
     # Método para verificar se um caractere é válido
     def is_valid_nome(self, char):
-        return self.is_letter(char) or self.is_digit(char) or char == '-'
+        return self.is_letter(char) or self.is_digit(char)
     
     def reconhecer_nome(self):
+        Posinicial = self.posicao
+        escopo = self.analisador_sintatico.get_escopo()
         nome = []  # Lista para armazenar os caracteres do nome
 
-        # Loop para percorrer o texto enquanto houver caracteres válidos para um nome
-        while self.posicao < self.buffer_size and (self.is_letter(self.buffer[self.posicao]) or self.is_digit(self.buffer[self.posicao])):
-            # Adiciona o caractere atual ao nome se for válido ou um underscore
-            if self.is_valid_nome(self.buffer[self.posicao]):
+        if self.is_letter(self.buffer[Posinicial]) and escopo != 1:
+            # Loop para percorrer o texto enquanto houver caracteres válidos para um nome
+            while self.posicao < self.buffer_size and self.is_valid_nome(self.buffer[self.posicao]):
                 nome.append(self.buffer[self.posicao])
-            self.avancar_posicao()  # Avança para o próximo caractere
+                self.avancar_posicao()  # Avança para o próximo caractere
+        else:
+            # Loop para percorrer o texto enquanto houver caracteres válidos para um nome
+            while self.posicao < self.buffer_size and (self.is_valid_nome(self.buffer[self.posicao]) or self.buffer[self.posicao] == '_'):
+                nome.append(self.buffer[self.posicao])
+                self.avancar_posicao()  # Avança para o próximo caractere
 
         qtd_char = len(nome)  # Calcula a quantidade de caracteres no nome
         qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
@@ -161,12 +165,11 @@ class AnalisadorLexico:
         nome = ''.join(nome)[:LIMITE_QTD_CHAR]  # Junta os caracteres do nome em uma string e limita o tamanho
 
         # Verifica se o nome contém underscore para determinar o código do token e o escopo
-        if(nome.find('_') == True):
+        if(nome.find('_') != -1):
             codigo = "C07"  # Código para variável local
-            self.analisador_sintatico.set_escopo(1)  # Define o escopo como 1
         else:
             # Determina o código do token e ajusta o escopo com base no contexto sintático
-            match self.analisador_sintatico.get_escopo():
+            match escopo:
                 case 1:
                     codigo = "C07"  # Variável local
                 case 2:
@@ -224,39 +227,50 @@ class AnalisadorLexico:
         return self.is_letter(char) or self.is_digit(char) or char in {' ', '_', '.', '$'}
 
     def reconhecer_cadeia(self):
+        cadeia = []  # Lista para armazenar os caracteres do nome
         inicio = self.posicao  # Guarda a posição inicial da cadeia
-        coluna_inicio = self.coluna  # Guarda a coluna inicial da cadeia
+        cadeia.append(self.buffer[self.posicao])
         self.avancar_posicao()  # Avança para o próximo caractere (após a aspas dupla)
 
         cadeia_valida = True  # Flag para verificar se a cadeia é válida
+
         while self.posicao < self.buffer_size and self.buffer[self.posicao] != '"':
-            if not self.is_valid_on_str(self.buffer[self.posicao]):
-                cadeia_valida = False  # Se o caractere não é válido, a cadeia é marcada como inválida
-            self.avancar_posicao()  # Avança para o próximo caractere
+            if self.buffer[self.posicao] == '\n':
+                # Se encontrar um '\n' dentro da cadeia delimitada por aspas, simplesmente avança a posição
+                self.avancar_posicao()
+            elif not self.is_valid_on_str(self.buffer[self.posicao]):
+                # Se o caractere não é válido, a cadeia é marcada como inválida
+                cadeia_valida = False
+                cadeia.append(self.buffer[self.posicao])
+                self.avancar_posicao()  # Avança para o próximo caractere
+            else:
+                # Caractere válido dentro da cadeia, adiciona à lista
+                cadeia.append(self.buffer[self.posicao])
+                self.avancar_posicao()  # Avança para o próximo caractere
+
+        cadeia.append(self.buffer[self.posicao])
+        self.avancar_posicao()  # Avança para o próximo caractere (após a aspas dupla final)
 
         # Verifica se a cadeia é válida ou não
         if not cadeia_valida:
-            self.avancar_posicao()  # Avança para o próximo caractere (após a aspas dupla final)
             cadeia = self.buffer[inicio:self.posicao]  # Extrai a cadeia do texto
             return -1  # Retorna -1 para indicar que a cadeia é inválida e deve ser ignorada
 
-        # Calcula a quantidade de caracteres na cadeia
-        qtd_char = self.posicao - inicio
+
+        qtd_char = len(cadeia)  # Calcula a quantidade de caracteres no cadeia
         qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
         qtd_char_antes = max(qtd_char, qtd_char_depois)  # Limita a quantidade de caracteres antes do truncamento
 
+        cadeia = ''.join(cadeia)[:LIMITE_QTD_CHAR]  # Junta os caracteres do nome em uma string e limita o tamanho
+
         # Extrai a cadeia do texto e limita o tamanho
         if qtd_char > LIMITE_QTD_CHAR:
-            cadeia = self.buffer[inicio:self.posicao][:LIMITE_QTD_CHAR-1] + '"'  # Adiciona uma aspas dupla no final
-            self.avancar_posicao()  # Avança para o próximo caractere (após a aspas dupla truncada)
-        else:
-            cadeia = self.buffer[inicio:self.posicao][:qtd_char_depois]  # Extrai a cadeia completa
+            cadeia = ''.join(cadeia)[:LIMITE_QTD_CHAR-1] + '"'  # Adiciona uma aspas dupla no final
 
         # Retorna um dicionário com as informações do token
         return {
             "token": cadeia, 
-            "linha": self.linha, 
-            "coluna": coluna_inicio, 
+            "linha": self.linha,
             "codigo": "C01",  # Código para cadeia de caracteres
             "tipo": "STR",  # Tipo do token (no caso, string)
             "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
@@ -268,11 +282,8 @@ class AnalisadorLexico:
         self.avancar_posicao()  # Avança para o próximo caractere (após a aspas simples inicial)
 
         while self.posicao < self.buffer_size:
-            if self.buffer[self.posicao] == "'" or self.buffer[self.posicao] == '\n':
+            if self.buffer[self.posicao] == "'":
                 break
-            if not self.is_letter(self.buffer[self.posicao]):
-                self.avancar_posicao()  # Avança para o próximo caractere
-                return -1
             self.avancar_posicao()  # Avança para o próximo caractere
 
         self.avancar_posicao()  # Avança para o próximo caractere
