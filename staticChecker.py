@@ -4,7 +4,7 @@ from analisadorLexico import AnalisadorLexico
 
 class AnalisadorSintatico:
     # Constantes para mapear tokens para códigos
-    ATOMOS = {
+    TABELA_DE_PALAVRAS_E_SIMBOLOS_RESERVADOS = {
         "cadeia": "A01", "caracter": "A02", "declaracoes": "A03", "enquanto": "A04",
         "false": "A05", "fimDeclaracoes": "A06", "fimEnquanto": "A07", "fimFunc": "A08",
         "fimFuncoes": "A09", "fimPrograma": "A10", "fimSe": "A11", "funcoes": "A12",
@@ -20,7 +20,7 @@ class AnalisadorSintatico:
     }
 
     # Mapeamento das palavras reservadas para os códigos correspondentes
-    RESERVADAS = {k.upper(): v for k, v in ATOMOS.items()}
+    RESERVADAS = {k.upper(): v for k, v in TABELA_DE_PALAVRAS_E_SIMBOLOS_RESERVADOS.items()}
 
     def __init__(self, nome_arquivo):
         self.nome_arquivo = nome_arquivo
@@ -35,9 +35,9 @@ class AnalisadorSintatico:
         # Executa a análise léxica para reconhecer os tokens no arquivo fonte
         self.analisador_lexico.reconhecerTokens()
         # Obtém todos os simbolos para o .LEX
-        self.simbolos = self.analisador_lexico.simbolos
+        self.simbolos = self.analisador_lexico.getSimbolos()
         # Obtém a tabela de símbolos gerada pelo analisador léxico
-        self.tabela_simbolos = self.analisador_lexico.tabela_simbolos
+        self.tabela_simbolos = self.analisador_lexico.getTabelaSimbolos()
         # Gera os relatórios de análise léxica e da tabela de símbolos
         self.gerar_relatorios()
 
@@ -54,7 +54,11 @@ class AnalisadorSintatico:
         self.gerar_relatorio_tabela_simbolos()  # Chama o método para gerar o relatório da tabela de símbolos
     
     def gerar_relatorio_lexico(self):
-        with open(self.nome_arquivo + '.LEX', 'w') as lex_file:
+        # Remove a extensão atual se existir
+        nome_base = os.path.splitext(self.nome_arquivo)[0]
+        # Adiciona a nova extensão .LEX
+        nome_arquivo_lex = nome_base + '.LEX'
+        with open(nome_arquivo_lex, 'w') as lex_file:
             # Escreve informações de equipe no arquivo de relatório léxico
             lex_file.write("Codigo da Equipe: 04\n")
             lex_file.write("Componentes:\n")
@@ -71,7 +75,11 @@ class AnalisadorSintatico:
 
     # Método para gerar relatório da tabela de símbolos
     def gerar_relatorio_tabela_simbolos(self):
-        with open(self.nome_arquivo + '.TAB', 'w') as tab_file:
+        # Remove a extensão atual se existir
+        nome_base = os.path.splitext(self.nome_arquivo)[0]
+        # Adiciona a nova extensão .TAB
+        nome_arquivo_tab= nome_base + '.TAB'
+        with open(nome_arquivo_tab, 'w') as tab_file:
             # Escreve informações de equipe no arquivo de relatório da tabela de símbolos
             tab_file.write("Codigo da Equipe: 04\n")
             tab_file.write("Componentes:\n")
@@ -106,7 +114,7 @@ class AnalisadorSintatico:
 def main():
     # Verifica se o número de argumentos está correto
     if len(sys.argv) != 2:
-        print("Uso: staticChecker.py <nome_arquivo>")
+        print("Uso: staticChecker.py <caminho_arquivo_sem_.241>")
         return
     
     # Obtém o nome do arquivo a partir dos argumentos de linha de comando

@@ -37,6 +37,14 @@ class AnalisadorLexico:
         texto = re.sub(r'//.*', lambda m: ' ' * (len(m.group(0))), texto)
         return texto
     
+    # Obtém todos os simbolos identificados
+    def getSimbolos(self):
+        return self.simbolos
+    
+    # Obtém a tabela de simbolos
+    def getTabelaSimbolos(self):
+        return self.tabela_simbolos
+
     # Método para reconhecer tokens no texto
     def reconhecerTokens(self):
         # Percorre o texto enquanto a posição atual for menor que o tamanho do buffer
@@ -89,7 +97,7 @@ class AnalisadorLexico:
             else:
                 token_info["codigo"] = self.analisador_sintatico.RESERVADAS.get(lexeme, None)
                 # Adiciona informações sobre o token à lista de símbolos
-                token_info["indice"] = self.obter_indice_simbolo(lexeme) or len(self.tabela_simbolos) + 1
+                token_info["indice"] = '-'
                 self.simbolos.append(token_info)
                 
     # Método para obter o índice de um símbolo na tabela de símbolos
