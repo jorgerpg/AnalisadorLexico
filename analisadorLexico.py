@@ -160,7 +160,7 @@ class AnalisadorLexico:
     def is_valid_nome(self, char):
         return self.is_letter(char) or self.is_digit(char)
     
-        # Função para verificar se um caractere é válido na linguagem, mas não como parte de um nome
+    # Função para verificar se um caractere é válido na linguagem, mas não como parte de um nome
     def is_valid_in_language_not_in_nome(self, char):
         # Conjunto de caracteres válidos
         not_valid_chars = set("$ .%():;?[]{}-*/+!=#<>")
@@ -191,9 +191,6 @@ class AnalisadorLexico:
                     self.avancar_posicao()  # Avança para o próximo caractere
                 else:
                     break
-
-        # Filtro para remover qualquer caractere inválido que tenha passado
-        #nome = [char for char in nome if self.is_valid_char(char)]
         
         qtd_char = len(nome)  # Calcula a quantidade de caracteres no nome
         qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
@@ -231,35 +228,6 @@ class AnalisadorLexico:
             "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
             "qtd_char_depois": qtd_char_depois  # Quantidade de caracteres depois do truncamento
         }
-
-    def reconhecer_numero(self):
-        inicio = self.posicao  # Guarda a posição inicial do número
-
-        # Loop para percorrer o texto enquanto houver dígitos
-        while self.posicao < self.buffer_size:
-            char = self.buffer[self.posicao]
-
-            if self.is_digit(char):
-                self.avancar_posicao()  # Avança para o próximo caractere
-            elif char == '.':
-                self.avancar_posicao()
-                return self.reconhecer_real(inicio)  # Chama a função para reconhecer números reais se encontrar um ponto
-            else:
-                break
-
-        qtd_char = self.posicao - inicio  # Calcula a quantidade de caracteres no número
-        qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
-        qtd_char_antes = max(qtd_char, qtd_char_depois)  # Limita a quantidade de caracteres antes do truncamento
-        
-        numero =self.buffer[inicio:self.posicao][:qtd_char_depois]  # Extrai o número do texto e limita o tamanho
-
-        # Retorna um dicionário com as informações do token
-        return {"token": numero, 
-                "linha": self.linha, 
-                "tipo": "INT",  # Tipo do token (no caso, número inteiro)
-                "codigo": "C03",  # Código do token
-                "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
-                "qtd_char_depois": qtd_char_depois}  # Quantidade de caracteres depois do truncamento}
 
     def is_valid_on_str(self, char):
         # Verifica se o caractere é uma letra, um dígito, espaço em branco, underscore, ponto ou cifrão
@@ -338,36 +306,87 @@ class AnalisadorLexico:
                 "qtd_char_antes": len(caracter),  # Quantidade de caracteres (um caractere)
                 "qtd_char_depois": len(caracter)}  # Quantidade de caracteres depois do truncamento (um caractere)
 
-    def reconhecer_real(self, inicio):
-        expoente_encontrado = False  # Flag para indicar se um expoente foi encontrado
+    # Função para verificar se um caractere é válido na linguagem, mas não como parte de um nome
+    def is_valid_in_language_not_in_numero(self, char):
+        # Conjunto de caracteres válidos
+        not_valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ_$ %():;?[]{}-*/+!=#<>")
+        return char in not_valid_chars
+    
+    def reconhecer_numero(self):
+        numero = []  # Lista para armazenar os caracteres do numero
 
-        # Loop para percorrer o texto enquanto houver dígitos ou um ponto (parte decimal)
-        while self.posicao < self.buffer_size:
+        # Loop para percorrer o texto enquanto houver dígitos
+        while self.posicao < self.buffer_size and self.buffer[self.posicao] != '\n':
             char = self.buffer[self.posicao]
 
             if self.is_digit(char):
+                numero.append(self.buffer[self.posicao])
                 self.avancar_posicao()  # Avança para o próximo caractere
-            elif char in ('e', 'E') and not expoente_encontrado:
-                expoente_encontrado = True  # Marca que um expoente foi encontrado
-                self.avancar_posicao()  # Avança para o próximo caractere
-                if self.posicao < self.buffer_size and self.buffer[self.posicao] in ('+', '-'):
-                    self.avancar_posicao()  # Avança para o próximo caractere se for um sinal após o expoente
+            elif char == '.':
+                numero.append(self.buffer[self.posicao])
+                self.avancar_posicao()
+                return self.reconhecer_real(numero)  # Chama a função para reconhecer números reais se encontrar um ponto
+            elif not self.is_valid_in_language_not_in_numero(char):
+                self.avancar_posicao()
             else:
-                break  # Sai do loop se o caractere não for um dígito, ponto ou parte do expoente
-
-        # Calcula a quantidade de caracteres na representação do número real
-        qtd_char = self.posicao - inicio
+                break
+        
+        qtd_char = len(numero)  # Calcula a quantidade de caracteres no nome
         qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
         qtd_char_antes = max(qtd_char, qtd_char_depois)  # Limita a quantidade de caracteres antes do truncamento
 
+        numero = ''.join(numero)[:LIMITE_QTD_CHAR]  # Junta os caracteres do nome em uma string e limita o tamanho
+
+        # Retorna um dicionário com as informações do token
+        return {"token": numero, 
+                "linha": self.linha, 
+                "tipo": "INT",  # Tipo do token (no caso, número inteiro)
+                "codigo": "C03",  # Código do token
+                "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
+                "qtd_char_depois": qtd_char_depois}  # Quantidade de caracteres depois do truncamento}
+       
+    # Função para verificar se um caractere é válido na linguagem, mas não como parte de um nome
+    def is_valid_in_language_not_in_real(self, char):
+        # Conjunto de caracteres válidos
+        not_valid_chars = set("ABCDFGHIJKLMNOPQRSTUVWXYZ_$ %():;?[]{}*/!=#<>")
+        return char in not_valid_chars
+    
+    def reconhecer_real(self, numero):
+        expoente_encontrado = False  # Flag para indicar se um expoente foi encontrado
+
+        # Loop para percorrer o texto enquanto houver dígitos ou um ponto (parte decimal)
+        while self.posicao < self.buffer_size and self.buffer[self.posicao] != '\n':
+            char = self.buffer[self.posicao]
+
+            if self.is_digit(char):
+                numero.append(self.buffer[self.posicao])
+                self.avancar_posicao()  # Avança para o próximo caractere
+            elif char in ('E') and not expoente_encontrado:
+                expoente_encontrado = True  # Marca que um expoente foi encontrado
+                numero.append(self.buffer[self.posicao])
+                self.avancar_posicao()  # Avança para o próximo caractere
+                if self.posicao < self.buffer_size and self.buffer[self.posicao] in ('+', '-'):
+                    numero.append(self.buffer[self.posicao])
+                    self.avancar_posicao()  # Avança para o próximo caractere se for um sinal após o expoente
+            elif not self.is_valid_in_language_not_in_real(char):
+                self.avancar_posicao()
+            else:
+                break  # Sai do loop se o caractere não for um dígito, ponto ou parte do expoente
+
+        
+        qtd_char = len(numero)  # Calcula a quantidade de caracteres no nome
+        qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
+        qtd_char_antes = max(qtd_char, qtd_char_depois)  # Limita a quantidade de caracteres antes do truncamento
+
+        numero = ''.join(numero)[:LIMITE_QTD_CHAR]  # Junta os caracteres do nome em uma string e limita o tamanho
+
         # Extrai a representação do número real do texto e limita o tamanho
         if qtd_char > LIMITE_QTD_CHAR:
-            token = self.buffer[inicio:self.posicao][:qtd_char_depois]  # Extrai o número real truncado
             # Verifica se o número real truncado contém um ponto decimal e ajusta o tipo do símbolo
-            if '.' in token:
-                if token.endswith('.'):  # Se o ponto decimal estiver no final, o número é inteiro
+            if '.' in numero:
+                if numero.endswith('.'):  # Se o ponto decimal estiver no final, o número é inteiro
                     qtd_char_depois = qtd_char_depois - 1  # Ajusta a quantidade de caracteres depois do truncamento
-                    token = self.buffer[inicio:self.posicao][:qtd_char_depois]  # Extrai o número inteiro
+                    numero = numero[:qtd_char_depois]  # Extrai o número inteiro
                     tipo_simb = "INT"  # Define o tipo do símbolo como inteiro
                     codigo = "C03"  # Define o código para números inteiros
                 else:
@@ -377,11 +396,11 @@ class AnalisadorLexico:
                 tipo_simb = "INT"  # Se não houver ponto decimal, o número é inteiro
                 codigo = "C03"  # Define o código para números inteiros
         else:
-            token = self.buffer[inicio:self.posicao][:qtd_char_depois]  # Extrai o número real completo
+            numero = numero[:qtd_char_depois]  # Extrai o número real completo
             # Verifica se o número real completo contém um ponto decimal e ajusta o tipo do símbolo
-            if token.endswith('.'):
+            if numero.endswith('.'):
                 qtd_char_depois = qtd_char_depois - 1  # Ajusta a quantidade de caracteres depois do truncamento
-                token = self.buffer[inicio:self.posicao][:qtd_char_depois]  # Extrai o número inteiro
+                numero = numero[:qtd_char_depois]  # Extrai o número inteiro
                 tipo_simb = "INT"  # Define o tipo do símbolo como inteiro
                 codigo = "C03"  # Define o código para números inteiros
             else:
@@ -389,7 +408,7 @@ class AnalisadorLexico:
                 codigo = "C04"  # Define o código para números reais
 
         # Retorna um dicionário com as informações do token
-        return {"token": token, 
+        return {"token": numero, 
                 "linha": self.linha,  
                 "codigo": codigo,  # Código correspondente ao tipo do número (inteiro ou real)
                 "tipo": tipo_simb,  # Tipo do token (inteiro ou real)
