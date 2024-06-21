@@ -5,7 +5,7 @@ Componentes:
     Matheus Freitas Pereira; matheus.pereira@aln.senaicimatec.edu.br; (71)99166-1915
     Eduardo de Araujo Rodrigues; eduardo.rodrigues@aln.senaicimatec.edu.br; (71)99267-9326
 
-RELATORIO DA ANALISE LEXICA. Texto fonte analisado: teste.241.
+RELATORIO DA ANALISE LEXICA. Texto fonte analisado: C:\Users\SENAI\Documents\repo\AnalisadorLexico\teste.241.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------
 Lexeme: PROGRAMA, Codigo: A17, IndiceTabSimb: -, Linha: 1.
