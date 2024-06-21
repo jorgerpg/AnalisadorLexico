@@ -228,11 +228,13 @@ class AnalisadorLexico:
             "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
             "qtd_char_depois": qtd_char_depois  # Quantidade de caracteres depois do truncamento
         }
-
+    
+    # Função para verificar se um caractere é válido na linguagem, mas não como parte de uma str
     def is_valid_on_str(self, char):
-        # Verifica se o caractere é uma letra, um dígito, espaço em branco, underscore, ponto ou cifrão
-        return self.is_letter(char) or self.is_digit(char) or char in {' ', '_', '.', '$'}
-
+        # Conjunto de caracteres válidos
+        valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$ .")
+        return char in valid_chars
+    
     def reconhecer_cadeia(self):
         cadeia = []  # Lista para armazenar os caracteres do nome
         inicio = self.posicao  # Guarda a posição inicial da cadeia
@@ -242,9 +244,8 @@ class AnalisadorLexico:
         cadeia_valida = True  # Flag para verificar se a cadeia é válida
 
         while self.posicao < self.buffer_size and self.buffer[self.posicao] != '"':
-            if self.buffer[self.posicao] == '\n':
-                # Se encontrar um '\n' dentro da cadeia delimitada por aspas, simplesmente avança a posição
-                self.avancar_posicao()
+            if not self.is_valid_char(self.buffer[self.posicao]):
+                self.avancar_posicao()  # Avança para o próximo caractere
             elif not self.is_valid_on_str(self.buffer[self.posicao]):
                 # Se o caractere não é válido, a cadeia é marcada como inválida
                 cadeia_valida = False

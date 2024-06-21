@@ -7,7 +7,7 @@ Se teste == 0.0332
     imprime "O teste eh men@or que 30"
     imprime 'x'
     'e_'
-    "O teste eh maior que 30 vamos continuar digitando
+    "O teste eh maior q+ue 30 vamos continuar digitando"
     "O teste eh 30semcontaras aspas"
     "teste
     "false"
