@@ -14,8 +14,14 @@ Este projeto é um compilador simples implementado em Python, composto por dois 
 
  Por exemplo:
 
-    ```
+    ``` 
     python staticChecker.py caminho_para_arquivo
+    ```
+
+ Ou utilize o executavel:
+ 
+    ```
+    staticChecker.exe caminho_para_arquivo
     ```
 
 3. O analisador realizará a análise léxica e sintática do arquivo especificado, gerando os arquivos `.LEX` e `.TAB` no mesmo diretório do arquivo analisado.
