@@ -19,23 +19,8 @@ class AnalisadorLexico:
 
     # Método para carregar o conteúdo do arquivo
     def carregarBuffer(self, buffer):
-                self.buffer = self.filtrar_comentarios(buffer)  # Lê o buffer e filtra comentários
+                self.buffer = buffer # Lê o buffer e filtra comentários
                 self.buffer_size = len(self.buffer)  # Calcula o tamanho do buffer
-    
-    # Método para filtrar comentários do texto
-    def filtrar_comentarios(self, texto):
-        while True:
-            bloco_comentario_inicio = texto.find('/*')
-            bloco_comentario_fim = texto.find('*/', bloco_comentario_inicio + 2)
-            if bloco_comentario_inicio == -1:
-                break
-            if bloco_comentario_fim == -1:
-                bloco_comentario_fim = len(texto)
-            comentario_bloco = texto[bloco_comentario_inicio:bloco_comentario_fim + 2]
-            texto = texto.replace(comentario_bloco, ' ' * len(comentario_bloco), 1)
-
-        texto = re.sub(r'//.*', lambda m: ' ' * (len(m.group(0))), texto)
-        return texto
     
     # Obtém todos os simbolos identificados
     def getSimbolos(self):
@@ -53,7 +38,10 @@ class AnalisadorLexico:
             if self.is_whitespace(self.buffer[self.posicao]):
                 self.avancar_posicao()  # Move para a próxima posição
                 continue
-
+            
+            if self.buffer[self.posicao] == '/':
+                self.filtrar_comentarios()
+                continue
             # Verifica se o caractere atual é uma aspas dupla, indicando uma cadeia de caracteres
             if self.buffer[self.posicao] == '"':
                 token_info = self.reconhecer_cadeia()  # Chama o método para reconhecer cadeias de caracteres
@@ -99,7 +87,23 @@ class AnalisadorLexico:
                 # Adiciona informações sobre o token à lista de símbolos
                 token_info["indice"] = '-'
                 self.simbolos.append(token_info)
-                
+
+    # Método para filtrar os comentarios
+    def filtrar_comentarios(self):
+        inicio = self.posicao
+        #Verifica o proximo char
+        self.avancar_posicao()
+
+        if(self.buffer[self.posicao] == '/'):
+            while self.posicao < self.buffer_size and self.buffer[self.posicao] != '\n': 
+                self.avancar_posicao()
+        
+        if(self.buffer[self.posicao] == '*'):
+            while self.posicao < self.buffer_size and self.buffer[self.posicao:self.posicao+2] != '*/': 
+                self.avancar_posicao()
+            self.avancar_posicao()
+            self.avancar_posicao()
+
     # Método para obter o índice de um símbolo na tabela de símbolos
     def obter_indice_simbolo(self, lexeme):
         for indice, (simbolo, _) in enumerate(self.tabela_simbolos.items(), start=1):

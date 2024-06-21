@@ -1,4 +1,4 @@
-programa _teste ABC
+programa A@~BC
 programa as_teste
 teste := b+5*3
 funcoes functest
@@ -16,8 +16,9 @@ Se teste == 0.0332
 12345678901234567890123456789
 1234567890123456789012345678901234567890
 //fimse
+/*
 varia[2]?
-teste@sadas
+teste@sadas */
 2.e23 // float
 2.e+24 // float
 2.e2334534654537637234523452365 // float
