@@ -150,10 +150,22 @@ class AnalisadorLexico:
                 "qtd_char_antes": len(operador),  # Quantidade de caracteres (um caractere)
                 "qtd_char_depois": len(operador)}  # Quantidade de caracteres depois do truncamento (um caractere)
 
-    # Método para verificar se um caractere é válido
+    # Método para verificar se um caractere é válido como na linguagem
+    def is_valid_char(self, char):
+        # Conjunto de caracteres válidos
+        valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$ .%():;?[]{}-*/+!=#<>")
+        return char in valid_chars
+
+    # Método para verificar se um caractere é válido como nome
     def is_valid_nome(self, char):
         return self.is_letter(char) or self.is_digit(char)
     
+        # Função para verificar se um caractere é válido na linguagem, mas não como parte de um nome
+    def is_valid_in_language_not_in_nome(self, char):
+        # Conjunto de caracteres válidos
+        not_valid_chars = set("$ .%():;?[]{}-*/+!=#<>")
+        return char in not_valid_chars
+
     def reconhecer_nome(self):
         Posinicial = self.posicao
         escopo = self.analisador_sintatico.get_escopo()
@@ -161,15 +173,28 @@ class AnalisadorLexico:
 
         if self.is_letter(self.buffer[Posinicial]) and escopo != 1:
             # Loop para percorrer o texto enquanto houver caracteres válidos para um nome
-            while self.posicao < self.buffer_size and self.is_valid_nome(self.buffer[self.posicao]):
-                nome.append(self.buffer[self.posicao])
-                self.avancar_posicao()  # Avança para o próximo caractere
+            while self.posicao < self.buffer_size and not (self.is_valid_in_language_not_in_nome(self.buffer[self.posicao]) or self.buffer[self.posicao] == '_' or self.buffer[self.posicao] == '\n'):
+                if self.is_valid_nome(self.buffer[self.posicao]):
+                    nome.append(self.buffer[self.posicao])
+                    self.avancar_posicao()  # Avança para o próximo caractere
+                elif not self.is_valid_char(self.buffer[self.posicao]):
+                    self.avancar_posicao()  # Avança para o próximo caractere
+                else:
+                    break
         else:
-            # Loop para percorrer o texto enquanto houver caracteres válidos para um nome
-            while self.posicao < self.buffer_size and (self.is_valid_nome(self.buffer[self.posicao]) or self.buffer[self.posicao] == '_'):
-                nome.append(self.buffer[self.posicao])
-                self.avancar_posicao()  # Avança para o próximo caractere
+            # Loop para percorrer o texto enquanto houver caracteres válidos para uma string
+            while self.posicao < self.buffer_size and not (self.is_valid_in_language_not_in_nome(self.buffer[self.posicao]) or self.buffer[self.posicao] == '\n'):
+                if (self.is_valid_nome(self.buffer[self.posicao]) or self.buffer[self.posicao] == '_'):
+                    nome.append(self.buffer[self.posicao])
+                    self.avancar_posicao()  # Avança para o próximo caractere
+                elif not self.is_valid_char(self.buffer[self.posicao]):
+                    self.avancar_posicao()  # Avança para o próximo caractere
+                else:
+                    break
 
+        # Filtro para remover qualquer caractere inválido que tenha passado
+        #nome = [char for char in nome if self.is_valid_char(char)]
+        
         qtd_char = len(nome)  # Calcula a quantidade de caracteres no nome
         qtd_char_depois = min(qtd_char, LIMITE_QTD_CHAR)  # Limita a quantidade de caracteres depois do truncamento
         qtd_char_antes = max(qtd_char, qtd_char_depois)  # Limita a quantidade de caracteres antes do truncamento
@@ -177,7 +202,7 @@ class AnalisadorLexico:
         nome = ''.join(nome)[:LIMITE_QTD_CHAR]  # Junta os caracteres do nome em uma string e limita o tamanho
 
         # Verifica se o nome contém underscore para determinar o código do token e o escopo
-        if(nome.find('_') != -1):
+        if '_' in nome:
             codigo = "C07"  # Código para variável local
         else:
             # Determina o código do token e ajusta o escopo com base no contexto sintático
@@ -192,18 +217,20 @@ class AnalisadorLexico:
                     self.analisador_sintatico.set_escopo(1)  # Reseta o escopo para 1 após identificar o nome da função
 
         # Verifica se o nome é "PROGRAMA" ou "FUNCOES" para ajustar o escopo
-        if(nome == "PROGRAMA"):
+        if nome == "PROGRAMA":
             self.analisador_sintatico.set_escopo(2)  # Define o escopo como 2 para identificar a definição do programa
-        elif(nome == "FUNCOES"):
+        elif nome == "FUNCOES":
             self.analisador_sintatico.set_escopo(3)  # Define o escopo como 3 para identificar a definição de funções
 
         # Retorna um dicionário com as informações do token
-        return {"token": nome, 
-                "linha": self.linha, 
-                "tipo": "VOI",  # Tipo do token (no caso, identificador)
-                "codigo": codigo,  # Código do token
-                "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
-                "qtd_char_depois": qtd_char_depois}  # Quantidade de caracteres depois do truncamento
+        return {
+            "token": nome, 
+            "linha": self.linha, 
+            "tipo": "VOI",  # Tipo do token (no caso, identificador)
+            "codigo": codigo,  # Código do token
+            "qtd_char_antes": qtd_char_antes,  # Quantidade de caracteres antes do truncamento
+            "qtd_char_depois": qtd_char_depois  # Quantidade de caracteres depois do truncamento
+        }
 
     def reconhecer_numero(self):
         inicio = self.posicao  # Guarda a posição inicial do número
