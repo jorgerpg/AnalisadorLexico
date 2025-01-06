@@ -1,6 +1,3 @@
-# Compilador
-https://github.com/jorgerpg/AnalisadorLexico
-
 ## Descrição
 Este projeto é um compilador simples implementado em Python, composto por dois componentes principais: um analisador léxico e um analisador sintático. No entanto, neste projeto, desenvolvido para a disciplina de compiladores, apenas o analisador léxico foi implementado. A gramática utilizada para o analisador léxico pode ser encontrada no repositório.
 
